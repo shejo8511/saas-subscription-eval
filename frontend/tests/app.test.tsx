@@ -7,14 +7,14 @@ import RootLayout, { metadata } from "@/app/layout";
 it("renders the phase 1 shell with working API navigation", async () => {
   render(<Home />);
   expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
-    "Una base para gestionar tus suscripciones.",
+    "Accede a tu espacio de empresa.",
   );
   expect(screen.getByRole("link", { name: /Consultar API/ })).toHaveAttribute(
     "href",
     "/api/docs",
   );
   expect(await screen.findByText("Entorno disponible")).toBeVisible();
-  expect(screen.getByText(/Sin cuentas de acceso todavía/)).toBeVisible();
+  expect(screen.getByText(/Dos empresas de demostración/)).toBeVisible();
 });
 
 it("sets Spanish document language and accessible skip navigation", () => {

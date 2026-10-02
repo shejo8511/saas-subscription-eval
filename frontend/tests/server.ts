@@ -3,6 +3,9 @@ import { setupServer } from "msw/node";
 
 export const origin = "http://localhost:3000";
 export const server = setupServer(
+  http.get(`${origin}/api/v1/auth/me`, () =>
+    HttpResponse.json({}, { status: 401 }),
+  ),
   http.get(`${origin}/api/v1/health`, () =>
     HttpResponse.json({ status: "ok" }),
   ),

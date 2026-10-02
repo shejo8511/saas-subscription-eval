@@ -7,11 +7,18 @@ test("shell connects through Next.js to FastAPI and PostgreSQL", async ({
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   page.on("console", (message) => {
-    if (message.type() === "error") errors.push(message.text());
+    if (
+      message.type() === "error" &&
+      !(
+        message.text().includes("401") &&
+        message.location().url.includes("/api/v1/auth/me")
+      )
+    )
+      errors.push(message.text());
   });
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-    "Una base para gestionar tus suscripciones.",
+    "Accede a tu espacio de empresa.",
   );
   await expect(page.getByRole("status")).toHaveText("Entorno disponible");
   await page.getByRole("button", { name: "Volver a comprobar" }).click();
