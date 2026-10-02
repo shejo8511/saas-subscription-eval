@@ -1,6 +1,13 @@
 name: saas-subscriptions
 
 x-backend-environment: &backend-environment
+  ENVIRONMENT: ${ENVIRONMENT:-development}
+  JWT_SECRET: ${JWT_SECRET:?Missing JWT_SECRET}
+  CSRF_SECRET: ${CSRF_SECRET:?Missing CSRF_SECRET}
+  COOKIE_SECURE: ${COOKIE_SECURE:-false}
+  PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-http://localhost:3000}
+  DEMO_SEED: ${DEMO_SEED:-false}
+  LOGIN_LIMIT: ${LOGIN_LIMIT:-30}
   DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-b2b}:${POSTGRES_PASSWORD:?Run ./scripts/dev.sh to configure development}@db:5432/${POSTGRES_DB:-b2b_dev}
 
 services:
@@ -30,6 +37,25 @@ services:
       db:
         condition: service_healthy
 
+  seed:
+    user: "0:0"
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      target: runtime
+    environment: *backend-environment
+    command: ["python", "-m", "app.seed"]
+    volumes:
+      - type: bind
+        source: ${DEMO_CREDENTIALS:-./.local/demo-credentials.json}
+        target: /run/demo-credentials.json
+        read_only: true
+        bind:
+          create_host_path: false
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
   backend:
     build:
       context: .
@@ -38,6 +64,8 @@ services:
     environment: *backend-environment
     depends_on:
       migrate:
+        condition: service_completed_successfully
+      seed:
         condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/ready', timeout=4)"]
@@ -75,6 +103,7 @@ services:
       COVERAGE_FILE: /reports/backend/.coverage
     volumes:
       - ${REPORTS_DIR:-./reports}:/reports
+      - ${TEST_FIXTURES_DIR:-./.local/test-fixtures}:/fixtures
     depends_on:
       db:
         condition: service_healthy
@@ -97,8 +126,10 @@ services:
     environment:
       BASE_URL: http://frontend:3000
       PLAYWRIGHT_REPORT_DIR: /reports/playwright
+      E2E_CREDENTIALS_FILE: /fixtures/accounts.json
     volumes:
       - ${REPORTS_DIR:-./reports}/playwright:/reports/playwright
+      - ${TEST_FIXTURES_DIR:-./.local/test-fixtures}:/fixtures:ro
     command: ["sh", "-c", "npm run e2e -- --output=/reports/playwright/results"]
     depends_on:
       frontend:
