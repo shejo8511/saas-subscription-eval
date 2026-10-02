@@ -24,3 +24,9 @@ Fecha: 2026-10-01 (America/Guayaquil). Autorización: exclusivamente fases 0 y 1
 Arranque: `./scripts/dev.sh`; verificación: `./scripts/verify.sh`. README y testing.md describen resultados y artefactos. PostgreSQL mantiene datos; no hay cuentas ni seeds de negocio. No hay bloqueos de destino, permisos o autenticación. La integración exige todos los checks del HEAD final, base actualizada y reglas vigentes; jamás bypass ni borrado de rama.
 
 **Detenerse antes de fase 2.** Siguiente fase autorizable: feature/auth-tenancy desde main actualizado, solamente si el propietario la autoriza en una nueva ejecución.
+
+## Avance comprobado — fase 2
+
+Código actual: 7423c85baa1d4cbaac2992350d5bf5924cd1c6da, feature/auth-tenancy. [PR #2](https://github.com/shejo8511/saas-subscription-eval/pull/2). [CI 37020174511](https://github.com/shejo8511/saas-subscription-eval/actions/runs/37020174511) con Backend/Frontend/Stack/Security success. Implementados modelos/migración, seed, auth/CSRF/roles vigentes, configuración/errores/rate limit y UI mínima. 87 pytest, 37 Vitest, 15 E2E; cobertura medida en testing.md. El registro histórico de fase 1 permanece intacto.
+
+Entrega fase 2 aún en curso mientras se completa la comprobación local de arranque/verificación y el commit documental. Los checks del HEAD final y eventual merge deben verificarse después de existir. No hay permisos/aprobaciones externas faltantes detectados; main exige los cuatro checks exactos y base actualizada. **Detenerse antes de fase 3**, pendiente de nueva autorización; no hay CRUD administrativo, licencias, consumo, alertas, SSE ni dashboard completo.

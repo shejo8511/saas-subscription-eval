@@ -11,3 +11,9 @@ Verificado en GitHub antes del commit documental final: Backend, Frontend, Stack
 Sin bloqueos de destino/autenticación/permisos; la integración final queda sujeta al HEAD exacto, checks y protección vigentes. Auto-delete de ramas desactivado; rama preservada. No se declara la aplicación completa terminada: autenticación, empresas/seeds, licencias, consumo, alertas, SSE y dashboard permanecen pendientes. Matriz R01–R24 separa verificación del bootstrap y requisitos futuros.
 
 Ejecución de la base: `./scripts/dev.sh`, UI http://localhost:3000 y OpenAPI /api/docs. Verificación: `./scripts/verify.sh`. **Detenerse antes de fase 2**; una nueva ejecución necesitará autorización para feature/auth-tenancy.
+
+## Continuidad fase 2
+
+El cierre anterior permanece como registro histórico. Autorización nueva: solamente autenticación, empresas y seguridad base. feature/auth-tenancy desde main actualizado c561650; [PR #2 real](https://github.com/shejo8511/saas-subscription-eval/pull/2). FastAPI conserva negocio, Next/React/TS/Tailwind UI y proxy, PostgreSQL real; migración posterior 0002, seed idempotente, JWT/Argon2/CSRF, permisos actuales y UI mínima. Sin fases 3–7.
+
+La entrega final requiere pruebas locales completas, cobertura independiente y cuatro checks del HEAD final; los resultados se registran al existir. Ramas nunca se borran; merge únicamente con reglas/checks/aprobaciones vigentes. Estado y matriz distinguen funcionalidades futuras.

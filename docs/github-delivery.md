@@ -20,3 +20,13 @@ Verificaciones reales antes del commit documental de cierre:
 Main protegido: PR, cuatro checks, base actualizada, administradores incluidos; cero revisiones requeridas, sin force-push/borrado. Sin reglas anteriores rebajadas. Merge commits permitidos. delete_branch_on_merge=false verificado; rama remota existente. No hay aprobación externa inventada.
 
 Al escribir este documento, PR #1 sigue abierta y la integración del commit documental final aún debe comprobarse. SHA final, checks posteriores y merge se reportan al cerrar la sesión, después de existir; no se atribuyen los resultados anteriores al nuevo SHA. Consultar la PR enlazada para el estado posterior y merge real. La integración usa merge commit, exige el HEAD exacto y conserva la rama; nunca --admin ni --delete-branch.
+
+## Cierre comprobado de fase 1 y apertura de fase 2
+
+PR #1 integrada en c561650925f45b94eee4e9b0da1bae131f98580b; feature/project-bootstrap conservada en 54d679ab246c3ad9a96ddf730d473d6c1ada03b3. [CI del HEAD final bootstrap](https://github.com/shejo8511/saas-subscription-eval/actions/runs/36965354389) y [CI del merge](https://github.com/shejo8511/saas-subscription-eval/actions/runs/36965647685) aprobados; el registro previo describe el momento anterior al commit documental y no se reescribe.
+
+2026-10-02: main actualizado continúa en c561650, sin cambios locales ni auth branch/PR previas. Origin y visibilidad pública conservados. Reglas verificadas: Backend/Frontend/Stack/Security, strict, administradores incluidos, cero aprobaciones requeridas, sin force-push/deletion y auto-delete false. Se crea feature/auth-tenancy en worktree propio para aislar la verificación histórica.
+
+[PR real #2 hacia main](https://github.com/shejo8511/saas-subscription-eval/pull/2). Commits incrementales docs/tenancy/auth/dev/web/tests/format. La PR se abre en borrador mientras termina la evidencia. Checks del HEAD final y eventual merge se informan después de existir; ningún check anterior se atribuye al commit documental posterior. No hay revisión externa inventada ni autorización de fases posteriores.
+
+Verificación remota comprobada del código antes del cierre documental: **7423c85baa1d4cbaac2992350d5bf5924cd1c6da**, [run 37020174511](https://github.com/shejo8511/saas-subscription-eval/actions/runs/37020174511): Backend/Frontend/Stack/Security success, 87 pytest, 37 Vitest y 15 Playwright. No se atribuye esta ejecución al commit documental aún no creado; su CI y merge se comprobarán después y se informarán al cierre.

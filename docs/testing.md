@@ -53,3 +53,17 @@ La cobertura frontend incluye next.config.ts y todo el código propio src: layou
 El worktree limpio temporal comprobó el commit 4f738dc sin node_modules/.venv/.env preexistentes; Docker suministró todas las herramientas. Se retiró tras terminar. La demo principal sigue saludable y su volumen no se borró. Los recursos de prueba se limpiaron y los informes se conservaron.
 
 GitHub: cuatro jobs aprobados en [CI 4f738dc](https://github.com/shejo8511/saas-subscription-eval/actions/runs/36964467164). Resultados de CI posteriores al commit documental final se informan al cierre, después de ejecutarse. Autenticación, negocio y SSE están fuera de esta fase y no se consideran probados.
+
+## Fase 2 — ampliación de controles
+
+La evidencia anterior corresponde exclusivamente a fase 1. La fase 2 agrega pruebas unitarias de JWT/Argon2/configuración/errores y PostgreSQL real de cuatro cuentas, estado/rol actuales, revocación/reinicio, CSRF, rate limit compartido, rollback, constraints, migración desde baseline y seed que conserva cambios. Rutas auxiliares de permisos solo existen en el test app.
+
+Las fixtures de integración usan bases b2b_test_* y sesiones por solicitud. Para conexiones a Docker desde el host bajo carga, la fixture auth usa el timeout configurable acotado a 10 segundos; no omite fallos. Vitest usa un worker para reducir contención de jsdom, manteniendo todas las aserciones y umbrales. Los tests de expiración usan reloj controlado y los de respuestas pendientes usan barreras, sin sleeps.
+
+E2E añade cuatro cuentas, reload, logout, dos tenants simultáneos en contextos independientes, cambio secuencial con observación del DOM, CSRF/origen, cookies y replay a través de Next. Se conservan regresiones de shell/readiness/OpenAPI/teclado y tres viewports. Solo el error HTTP 401 esperado de /auth/me anónimo se clasifica como esperado en consola; los demás errores fallan. Capturas deliberadas muestran formularios sin passwords y datos sintéticos públicos. Tracing auth desactivado para impedir que solicitudes/cookies se publiquen como artefactos; esto no desactiva pruebas.
+
+Seguridad conserva scans completos de dependencias y secretos del árbol/historia. Para worktrees, el scanner recibe una copia bare temporal de toda la historia local; no se excluyen commits. Los informes permanecen en reports/ y los recursos del proyecto de pruebas se eliminan incluso ante error, sin tocar volúmenes demo.
+
+Los resultados finales y SHA verificados se agregan después de ejecutar los controles; no se atribuyen métricas históricas al nuevo código.
+
+Medición remota comprobada sobre 7423c85baa1d4cbaac2992350d5bf5924cd1c6da, [CI 37020174511](https://github.com/shejo8511/saas-subscription-eval/actions/runs/37020174511): 42 unitarias + 45 integración PostgreSQL = 87; 5 tests de herramientas (4 umbral, 1 configuración); 37 Vitest; 15 E2E. Backend 423/450 líneas = 94%, 42/50 ramas = 84%, cero líneas excluidas. Frontend 124/124 líneas = 100%, 133/134 statements = 99.25%, 38/38 funciones = 100%, 104/106 ramas = 98.11%; cero skips. Los cuatro jobs y sus comandos finalizaron con exit 0. Artefactos originales descargados para comprobar JSON/JUnit/capturas; resultados locales completos se registran separadamente.

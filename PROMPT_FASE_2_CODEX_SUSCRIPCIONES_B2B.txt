@@ -1,0 +1,392 @@
+FASE 2 — AUTENTICACIÓN, EMPRESAS Y SEGURIDAD BASE
+Repositorio: shejo8511/saas-subscription-eval
+Rama principal de trabajo: feature/auth-tenancy
+
+Actúa como desarrollador senior fullstack especializado en Python/FastAPI,
+React/Next.js y PostgreSQL. Trabaja en el repositorio actual e implementa
+código funcional, pruebas y entrega verificable mediante GitHub.
+
+AUTORIZACIÓN Y LÍMITE DE ESTA EJECUCIÓN
+
+Autorizo exclusivamente la FASE 2 del archivo
+CODEX_PLAN_SUSCRIPCIONES_B2B.md. No ejecutes las fases 3 a 7.
+
+La restricción anterior de AGENTS.md y del documento de estado que limita
+el trabajo a fases 0 y 1 queda sustituida SOLO en cuanto al alcance de la
+fase autorizada. Conserva todas las demás reglas de seguridad, calidad,
+arquitectura y entrega. Actualiza esta autorización en la nueva rama,
+no mediante un commit directo a main. No reescribas el registro histórico
+del cierre de fase 1 ni elimines sus evidencias.
+
+El punto de partida reportado es la PR #1 integrada mediante c561650,
+con rama feature/project-bootstrap conservada. Compruébalo. Si main ya
+contiene commits posteriores, inspecciónalos y utiliza la base actual
+compatible; no hagas reset al SHA histórico.
+
+Este prompt concreta cómo ejecutar y validar la fase existente. No
+atribuye al PDF requisitos adicionales ni autoriza funcionalidades de
+negocio reservadas para fases posteriores.
+
+1. LECTURA Y COMPROBACIÓN INICIAL
+
+Lee completos AGENTS.md, las instrucciones aplicables de subdirectorios,
+CODEX_PLAN_SUSCRIPCIONES_B2B.md y estos documentos existentes:
+
+- docs/implementation-state.md
+- docs/requirements-matrix.md
+- docs/architecture.md
+- docs/testing.md
+- docs/qa-report.md
+- docs/github-delivery.md
+- README.md
+
+Inspecciona el código real, migraciones, proxy, scripts, lockfiles y CI.
+No supongas que las rutas orientativas del plan coinciden con el código.
+
+Comprueba git status, rama actual, origin, historial, PR #1, permisos,
+checks y reglas remotas. No muestres credenciales en comandos o salidas.
+Verifica que feature/project-bootstrap sigue publicada y que no está
+habilitada la eliminación automática de ramas.
+
+Si hay cambios locales ajenos, no los descartes, incluyas ni guardes
+mediante stash sin autorización. Trabaja en un worktree seguro cuando
+sea viable; pregunta solo por un impedimento realmente no resoluble.
+
+Crea feature/auth-tenancy desde origin/main actualizado, o retoma la rama
+si ya existe y contiene trabajo compatible. No dupliques ramas o PRs.
+Ejecuta la verificación base para detectar regresiones preexistentes y
+registra el SHA y resultado. No reconstruyas innecesariamente fase 1.
+
+Mantén FastAPI como único backend de negocio; Next.js para UI y proxy;
+PostgreSQL en Docker. Conserva uv.lock, package-lock.json y las versiones
+compatibles existentes. Añade solo dependencias necesarias; no cambies
+el stack ni fuerces actualizaciones para ocultar vulnerabilidades.
+
+2. MODELOS, MIGRACIONES E INTEGRIDAD
+
+Implementa empresas, usuarios, suscripciones y sesiones de autenticación:
+
+- Empresa: identidad, estado y fechas.
+- Usuario: empresa, identidad, email normalizado, password_hash,
+  rol Admin/User, estado y fechas.
+- Suscripción: empresa, estado, max_licenses y monthly_api_limit.
+- Sesión: jti único, usuario, expiración, creación y revocación.
+
+Cada usuario pertenece a una sola empresa y el email normalizado es único
+globalmente, conforme al plan. No introduzcas superadministrador,
+múltiples membresías ni selector de empresa.
+
+Impón restricciones reales en PostgreSQL: referencias, unicidad, roles
+válidos, cuotas enteras positivas y una suscripción activa por empresa.
+Evita columnas redundantes de tenant sin integridad referencial. Si una
+relación conserva company_id en ambos extremos, impide combinaciones
+cruzadas mediante restricciones adecuadas.
+
+Añade una migración posterior al baseline existente. No edites una
+migración integrada para fingir que estas tablas ya existían. No uses
+create_all como sustituto de Alembic ni migres desde cada worker.
+
+Usa timestamps conscientes de zona horaria y contratos UTC. Conserva el
+estilo de sesiones SQLAlchemy del proyecto; no compartas una sesión de
+base de datos entre solicitudes o tareas concurrentes.
+
+Prueba migración desde vacío y desde el baseline de fase 1. Comprueba
+persistencia tras reinicios y repetición del arranque. Los downgrade y
+pruebas destructivas se ejecutan exclusivamente sobre bases desechables.
+No crees todavía modelos de licencias, eventos de consumo ni alertas.
+
+3. AUTENTICACIÓN Y AUTORIZACIÓN EN FASTAPI
+
+Implementa estos contratos y documéntalos en OpenAPI:
+
+GET  /api/v1/auth/csrf
+POST /api/v1/auth/login
+POST /api/v1/auth/logout
+GET  /api/v1/auth/me
+
+Preserva health/readiness y el comportamiento operativo ya existente.
+
+Login debe validar email y contraseña, comprobar usuario/empresa activos,
+verificar Argon2 y crear una sesión persistida antes de responder éxito.
+Normaliza el email; no recortes ni modifiques la contraseña recibida.
+No reveles si un email existe mediante mensajes distintos. Acota entradas
+y evita diferencias obvias de trabajo al verificar usuarios inexistentes.
+
+Utiliza una biblioteca mantenida para JWT; no criptografía propia.
+Valida firma, algoritmo permitido y presencia/tipos/coherencia de los
+claims necesarios: sub, jti, exp e iat; verifica issuer/audience cuando
+los emitas. Rechaza tokens alterados, malformados, expirados, sin claims
+obligatorios o con algoritmo no permitido.
+
+Configura duración corta, por ejemplo 30 minutos, sin refresh tokens.
+En cada solicitud protegida, comprueba en PostgreSQL la sesión vigente,
+su correspondencia con sub, el usuario, la empresa y los permisos actuales.
+No aceptes un JWT criptográficamente válido como autorización suficiente.
+No uses rol o company_id del navegador como autoridad, tampoco headers,
+parámetros, payloads ni claims obsoletos.
+
+Crea dependencias reutilizables equivalentes a usuario autenticado,
+contexto de empresa y require_admin. Un Admin solo administra su empresa;
+no tiene acceso global. Un cambio de rol/estado confirmado en la base
+debe afectar a las solicitudes posteriores sin esperar al vencimiento.
+
+GET /auth/me devuelve únicamente identidad pública, empresa autorizada,
+rol actual y datos mínimos de sesión, nunca JWT, jti sensible,
+password_hash ni información de otra empresa.
+
+Logout revoca la sesión actual en PostgreSQL y elimina sus cookies con
+los mismos atributos de alcance. Demuestra que reutilizar el JWT anterior
+no recupera acceso. Define la repetición segura de logout y su interacción
+con CSRF, incluso si la sesión ya venció; no lo conviertas en un GET.
+
+Si PostgreSQL falla, no concedas acceso ni simules una revocación exitosa.
+Mantén rollback y errores coherentes. Las sesiones de otros navegadores
+no se revocan por cerrar la sesión actual salvo política documentada y
+justificada, sin añadir gestión avanzada de dispositivos.
+
+4. COOKIES, CSRF Y PROXY DEL MISMO ORIGEN
+
+Transporta el JWT en cookie HttpOnly, con SameSite explícito, Path
+coherente y sin Domain innecesario. Usa Secure en HTTPS/no local y una
+configuración de desarrollo explícita que funcione en localhost HTTP.
+No pongas JWT en JSON para React, URLs, localStorage o sessionStorage.
+
+Implementa CSRF también en login y logout: protección preautenticada,
+rotación al autenticar y vínculo con la sesión autenticada. Usa doble
+cookie firmada o un patrón establecido equivalente. No basta comparar
+dos valores controlables sin vinculación o integridad.
+
+Documenta bootstrap, envío, expiración y recuperación del token CSRF.
+No confundas el token CSRF accesible al frontend con la cookie JWT
+HttpOnly. Rechaza token ausente, alterado, de otra sesión y origen no
+permitido. Repetir GET /auth/csrf no debe romper innecesariamente otras
+pestañas ni invalidar una sesión válida.
+
+Valida Origin/Referer contra el origen público permitido, no contra un
+host Docker. Define qué sucede si faltan o son null. No uses comodines
+peligrosos ni asumas que CORS/SameSite reemplazan CSRF.
+
+Inspecciona y adapta el proxy existente para conservar Cookie y cada
+Set-Cookie, incluido borrado, así como headers CSRF y códigos HTTP.
+No conviertas cualquier Origin recibido en uno permitido. Define qué
+cabeceras reenviadas son confiables; no aceptes identidad/IP suministrada
+arbitrariamente por un cliente.
+
+Desactiva caché compartida para respuestas de autenticación y datos
+personalizados, tanto en Next.js como en HTTP. Prueba login/logout por
+el origen público de Next.js, no solo accediendo directamente a FastAPI.
+
+5. CONFIGURACIÓN, ERRORES Y CONTROL DE INTENTOS
+
+Conserva el contrato global de errores del proyecto y extiéndelo cuando
+sea necesario. Mantén códigos HTTP correctos y request_id, sin traceback,
+SQL, contraseñas, cookies, hashes ni tokens en respuestas o logs.
+Revisa especialmente errores de validación que puedan repetir inputs
+sensibles. Define y prueba 401, 403, 422, 429 y fallos operativos aplicables.
+
+Implementa un límite configurable de intentos de login, con expiración,
+estado acotado y respuesta 429/Retry-After. No desactives el control en
+los recorridos normales para que las pruebas pasen.
+
+La estrategia debe corresponder al número real de procesos: usa estado
+compartido en PostgreSQL si hace falta o limita/documenta explícitamente
+la configuración soportada. No presentes un contador en memoria como
+protección global entre workers. No añadas Redis u otra infraestructura
+solo para esta evaluación. Evita límites eludibles mediante headers de IP
+falsificados o simples variaciones del email normalizado.
+
+Genera secretos locales aleatorios una sola vez mediante el mecanismo
+atómico existente; consérvalos en archivos ignorados por Git. Fuera de
+local/test, rechaza secretos ausentes, placeholders, valores conocidos
+de demo y configuraciones inseguras aplicables. No añadas despliegue cloud.
+
+6. SEED DE DEMOSTRACIÓN Y ARRANQUE
+
+Añade seed idempotente para al menos dos empresas diferenciadas, cada
+una con un Admin, un User y una suscripción con límites pequeños positivos.
+No asignes licencias todavía ni inventes consumo.
+
+Mantén ./scripts/dev.sh como único comando necesario con Docker/Compose.
+Debe migrar, inicializar la demo local y levantar la aplicación sin exigir
+Python o Node globales al evaluador.
+
+Genera credenciales locales sintéticas y explica cómo consultarlas en un
+archivo local protegido e ignorado por Git. No publiques contraseñas ni
+claves JWT en README, commits, capturas, trazas o logs de CI.
+
+El segundo arranque no debe duplicar empresas, usuarios o suscripciones,
+regenerar secretos, resetear contraseñas ni sobrescribir roles, estados
+o cuotas ya modificados. Prueba este comportamiento con datos existentes.
+
+Separa seed de desarrollo y fixtures de tests. Bloquea el seed demo fuera
+de la configuración autorizada. No borres volúmenes para conseguir un
+arranque verde ni uses las cuentas de la demo en pruebas destructivas.
+
+7. FRONTEND MÍNIMO FUNCIONAL
+
+Implementa login y una vista protegida mínima en español, conectados a
+la API real. La vista muestra identidad, empresa, rol y cierre de sesión;
+no un dashboard simulado con métricas de futuras fases.
+
+Mantén Context para sesión y la estrategia de datos remotos del plan.
+Evita duplicar la fuente de verdad. Recupera sesión con /auth/me al
+recargar y distingue comprobación inicial, autenticado, no autenticado,
+fallo de red y error del servidor.
+
+Maneja envío, errores de validación, credenciales inválidas, expiración y
+logout. Impide envíos accidentales duplicados. No muestres contenido
+privado mientras se determina la sesión. Los guards de frontend no
+sustituyen las dependencias de autorización de FastAPI.
+
+Al cerrar sesión o cambiar de identidad, limpia cachés y cancela/descarta
+respuestas pendientes de la identidad anterior. Prueba A → logout → B
+en el mismo navegador sin mostrar datos anteriores ni siquiera
+transitoriamente. No reintentes automáticamente mutaciones sensibles.
+
+Limita cualquier redirección posterior al login a destinos internos
+permitidos. Mantén accesibilidad básica: labels, teclado, foco y mensajes
+asociados. Comprueba 375, 768 y 1440 píxeles, sin overflow general.
+
+No construyas todavía tabla de usuarios, formularios de asignación,
+gráficos, alertas ni SSE. No añadas botones sin funcionalidad para simular
+que esas fases están completas.
+
+8. PRUEBAS DE ACEPTACIÓN DE ESTA FASE
+
+Añade pruebas unitarias e integración backend con PostgreSQL real,
+pruebas frontend y E2E por Next.js → FastAPI → PostgreSQL.
+No sustituyas persistencia/autorización por mocks en integración o E2E.
+
+Cubre, como mínimo, estos comportamientos, agrupando casos sin imponer
+un número artificial de tests:
+
+A. Login de Admin y User de ambas empresas; credenciales inválidas;
+   usuario y empresa inactivos; entradas inválidas/sensibles no filtradas.
+B. JWT alterado, expirado, claims faltantes y algoritmo no permitido;
+   sesión inexistente, revocada o incompatible con el usuario del token.
+C. /auth/me recupera identidad correcta; un payload/header/claim manipulado
+   no cambia de empresa ni eleva rol. Los permisos usan el estado actual
+   de PostgreSQL, no solo los claims de emisión.
+D. Logout revoca realmente; reutilización del token previo rechazada;
+   cookies eliminadas a través del proxy y comportamiento repetido definido.
+E. CSRF legítimo admitido; ausente, alterado, de otra sesión y origen
+   no permitido rechazados en los casos pertinentes, incluido login.
+F. Rate limit, expiración de la ventana y Retry-After; aislamiento del
+   estado de tests y comportamiento entre procesos según diseño.
+G. Integridad PostgreSQL, normalización/unicidad de email, cuotas válidas,
+   migraciones y seed repetido sin sobrescribir cambios.
+H. Fallo de base de datos y rollback sin autorización o éxito ficticios.
+I. Recarga con sesión válida, acceso anónimo denegado, sesión expirada,
+   error de red, logout y cambio de cuenta sin contaminación de caché.
+J. Recorrido completo por el proxy, múltiples Set-Cookie y atributos,
+   accesibilidad, responsive y ausencia de errores relevantes en consola.
+K. Reinicio del backend sin pérdida de sesiones persistidas vigentes
+   ni resurrección de las revocadas, con los secretos locales conservados.
+
+Para probar cambios de rol/estado todavía sin endpoints administrativos,
+usa fixtures/transacciones en la base aislada. No adelantes fase 3 para
+crear una interfaz de prueba. Prueba require_admin con el mecanismo de
+dependencias real; cualquier ruta auxiliar de test debe existir solo en
+la aplicación de pruebas, nunca en la aplicación entregada.
+
+Para sesiones simultáneas de empresas distintas usa contextos de navegador
+independientes; añade además el cambio secuencial de cuentas en un mismo
+contexto. Usa reloj controlado y sincronización determinista cuando
+corresponda, no esperas arbitrarias para ocultar carreras o expiraciones.
+
+Mantén bases/proyectos de tests aislados con protección de destino.
+No publiques artefactos con secretos. Conserva regresiones del bootstrap
+cuando sigan siendo válidas y adapta únicamente expectativas cambiadas
+por funcionalidades legítimas; no elimines pruebas para ocultar fallos.
+
+9. COBERTURA Y VERIFICACIÓN
+
+Ejecuta ./scripts/verify.sh y los controles complementarios de esta fase.
+Todas las pruebas obligatorias deben pasar. Exige por separado:
+
+- Backend: líneas >=80% y ramas de decisión >=80%.
+- Frontend: líneas, statements, funciones y ramas >=80% cada una.
+
+Incluye código nuevo y módulos no importados por los tests en el
+denominador. No promedies backend y frontend ni exijas 80% por cada suite
+aislada; informa unitarias/integración separadas y medición combinada por
+capa. E2E complementa, no sustituye.
+
+Conserva el verificador probado de umbrales independientes del backend.
+No rebajes thresholds, amplíes exclusiones artificialmente, introduzcas
+skips, tests vacíos, passWithNoTests, continue-on-error o flags que oculten
+fallos. No es obligatorio mantener el 100% del pequeño bootstrap;
+sí medir honestamente el código ampliado y probar rutas de seguridad.
+
+Ejecuta también arranque desde worktree limpio, segundo arranque,
+persistencia, lint, formato, tipos, builds y comprobaciones de seguridad.
+Registra comandos, códigos de salida, recuentos, denominadores de
+cobertura y SHA. No atribuyas los resultados antiguos al código nuevo.
+
+10. COMMITS, PR Y VERIFICACIÓN REMOTA
+
+Trabaja con Conventional Commits incrementales por cambios coherentes:
+modelos/migraciones, sesión/seguridad, frontend, pruebas y documentación.
+Las pruebas deben acompañar la implementación; no dejarlas todas al final.
+No impongas cuotas artificiales de commits.
+
+Corrige defectos introducidos por esta fase dentro de su rama. Si aparece
+un defecto previo independiente que requiera corrección separada, usa
+fix/<hallazgo-real> desde main con prueba de regresión y PR propio;
+integra después ese main en la rama de fase. No inventes bugs ni ramas.
+
+Publica explícitamente solo las ramas de este trabajo y abre una PR real
+hacia main. No uses git push --all, force-push, bypass, commits directos
+a main ni eliminación de ramas. No cambies origin ni la visibilidad.
+
+La PR debe explicar alcance, migración, decisiones de sesión/CSRF,
+permisos, datos demo, resultados locales, riesgos y pruebas reproducibles.
+No publiques secretos ni inventes revisiones externas.
+
+Comprueba Backend, Frontend, Stack y Security sobre el HEAD final de la
+PR, respetando los nombres/checks efectivos del repositorio. Checks
+pendientes, omitidos o cancelados no cuentan como satisfactorios.
+
+Integra mediante merge commit cuando las reglas lo permitan y estén
+todos los controles y aprobaciones requeridas. No te autoapruebes como
+si existiera un revisor independiente. Si falta un permiso/aprobación,
+deja el PR pendiente y declara el bloqueo; no eludas protecciones.
+
+Después de integrar, comprueba el CI del merge en main y la existencia
+remota tanto de feature/project-bootstrap como de feature/auth-tenancy
+y de las ramas fix realmente utilizadas. Verifica el estado final desde
+un entorno limpio sin alterar la demo del propietario.
+
+11. DOCUMENTACIÓN, CIERRE Y DETENCIÓN
+
+Actualiza README, AGENTS.md, arquitectura, matriz, estado, testing,
+QA y registro GitHub. Distingue requisito del PDF, decisión del plan y
+detalle técnico adoptado. Documenta las limitaciones de la demo.
+
+Registra R15 y los avances aplicables de errores, estado y aislamiento
+según evidencia. No marques como terminados R02, R16, R17, R20 ni otros
+requisitos cuya funcionalidad completa pertenece a fases posteriores.
+Las pruebas de aislamiento de auth no certifican endpoints aún inexistentes.
+
+Mantén la trazabilidad del cierre de fase 1 y agrega esta fase. No escribas
+en un commit resultados futuros de su propio CI o merge. Los resultados
+posteriores al último commit se informan al cierre o en la PR.
+
+Entrega un informe con:
+
+1. Alcance implementado y funcionalidades expresamente pendientes.
+2. Rama, commits, PR, estado, merge y ramas conservadas.
+3. Comandos realmente ejecutados y códigos de salida.
+4. Cantidades de pruebas unitarias/integración/frontend/E2E y cobertura
+   medida por capa, con denominadores y SHA.
+5. Checks y enlaces remotos correspondientes al HEAD y merge verificados.
+6. Hallazgos, correcciones, limitaciones y comprobaciones no realizadas.
+7. Cómo arrancar, consultar credenciales locales y probar las dos empresas.
+8. Estado del árbol de trabajo y recursos de prueba que se limpiaron.
+
+No declares fase 2 completamente entregada si faltan pruebas obligatorias,
+PR o verificaciones remotas. No declares terminada la aplicación completa.
+
+DETENTE ANTES DE FASE 3. No implementes CRUD administrativo de usuarios,
+cambios de roles/estado por API, licencias, consumo, alertas, SSE, gráficos,
+pagos, registro público ni recuperación de contraseña.
