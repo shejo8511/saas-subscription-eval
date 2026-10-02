@@ -1,4 +1,22 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
+
+async function withEnvironmentResponses(
+  page: Page,
+  action: () => Promise<unknown>,
+) {
+  const responses = ["health", "ready"].map((endpoint) =>
+    page.waitForResponse(
+      (response) =>
+        response.url().endsWith(`/api/v1/${endpoint}`) &&
+        response.request().method() === "GET",
+    ),
+  );
+  const [, received] = await Promise.all([action(), Promise.all(responses)]);
+  for (const [index, response] of received.entries()) {
+    expect(response.status()).toBe(200);
+    expect((await response.json()).status).toBe(index === 0 ? "ok" : "ready");
+  }
+}
 
 test("shell connects through Next.js to FastAPI and PostgreSQL", async ({
   page,
@@ -16,12 +34,16 @@ test("shell connects through Next.js to FastAPI and PostgreSQL", async ({
     )
       errors.push(message.text());
   });
-  await page.goto("/");
+  await withEnvironmentResponses(page, () =>
+    page.goto("/", { waitUntil: "domcontentloaded" }),
+  );
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
     "Accede a tu espacio de empresa.",
   );
   await expect(page.getByRole("status")).toHaveText("Entorno disponible");
-  await page.getByRole("button", { name: "Volver a comprobar" }).click();
+  await withEnvironmentResponses(page, () =>
+    page.getByRole("button", { name: "Volver a comprobar" }).click(),
+  );
   await expect(page.getByRole("status")).toHaveText("Entorno disponible");
   for (const endpoint of ["health", "ready"]) {
     const response = await request.get(`/api/v1/${endpoint}`);
@@ -46,7 +68,9 @@ test("shell connects through Next.js to FastAPI and PostgreSQL", async ({
 });
 
 test("keyboard navigation exposes focus and skip link", async ({ page }) => {
-  await page.goto("/");
+  await withEnvironmentResponses(page, () =>
+    page.goto("/", { waitUntil: "domcontentloaded" }),
+  );
   await expect(page.getByRole("status")).toHaveText("Entorno disponible");
   await page.keyboard.press("Tab");
   await expect(
@@ -55,6 +79,6 @@ test("keyboard navigation exposes focus and skip link", async ({ page }) => {
   await page.keyboard.press("Enter");
   await expect(page.locator("#main")).toBeInViewport();
   await page.getByRole("button", { name: "Volver a comprobar" }).focus();
-  await page.keyboard.press("Enter");
+  await withEnvironmentResponses(page, () => page.keyboard.press("Enter"));
   await expect(page.getByRole("status")).toHaveText("Entorno disponible");
 });

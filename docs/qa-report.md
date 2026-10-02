@@ -1,5 +1,11 @@
 # QA — bootstrap
 
+## Recorridos E2E: sincronización y presupuesto total
+
+El límite total heredado de 30 segundos se agotó en regresiones reales del shell, tanto en la ejecución baseline anterior (3/6 fallos en health-fix-stack.log) como bajo la carga de fase 2 (46,8 segundos antes de completar el recorrido). Además, las aserciones del estado de entorno empezaban antes de finalizar los HTTP health/ready. Corrección independiente desde main 59dde88 en fix/browser-test-deadline: timeout total acotado de 90 segundos y espera de las dos respuestas HTTP reales antes de comprobar UI/reintento. Navegación hasta DOMContentLoaded, seguida de esas respuestas; no depende del evento load de todos los assets.
+
+Se conserva el timeout de las aserciones, todos los endpoints/asserts, consola, teclado, viewports, cobertura y cero retries/skips. Las respuestas deben ser 200 y su JSON ok/ready; no se acepta un 503 como saludable. Las seis regresiones reales se ejecutan contra Next→FastAPI→PostgreSQL; resultados locales/CI se registran al existir.
+
 ## Corrección posterior: presupuesto del healthcheck Python
 
 2026-10-02: durante la fase 2 se reprodujo también en el backend integrado de fase 1 que Docker mataba el probe a los 5 segundos. Se midieron 9,38 segundos solamente para importar urllib en el host local bajo carga. La corrección independiente se desarrolla en fix/readiness-probe-timeout desde main, sin modificar la historia del bootstrap. El presupuesto del proceso es 20 segundos, con intervalo de 15 segundos para reducir el coste de lanzar intérpretes bajo carga; conserva la llamada real a /ready, su timeout HTTP de 4 segundos, el timeout SQL y la exigencia de HTTP 200. Los errores siguen haciendo fallar el healthcheck; no se reemplaza por health ni se acepta un 503. La espera global de arranque queda acotada a 600 segundos, sin cambiar el requisito de salud. CI y reproducción local se comprueban en el commit correspondiente antes de integrar.
