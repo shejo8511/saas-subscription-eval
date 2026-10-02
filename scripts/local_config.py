@@ -44,9 +44,7 @@ def prepare(root: Path) -> None:
             "COOKIE_SECURE": "false",
             "DEMO_SEED": "true",
         }
-        additions = {
-            key: value for key, value in defaults.items() if not values.get(key)
-        }
+        additions = {key: value for key, value in defaults.items() if not values.get(key)}
         if additions:
             atomic_write(
                 environment,
@@ -70,9 +68,7 @@ def prepare(root: Path) -> None:
                 ]
                 for role in ("Admin", "User")
             ]
-            atomic_write(
-                credentials, json.dumps(accounts, ensure_ascii=False, indent=2) + "\n"
-            )
+            atomic_write(credentials, json.dumps(accounts, ensure_ascii=False, indent=2) + "\n")
 
 
 if __name__ == "__main__":

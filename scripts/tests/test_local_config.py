@@ -35,6 +35,4 @@ class LocalConfigurationTests(unittest.TestCase):
             )
             module.prepare(root)
             self.assertEqual((root / ".env").read_bytes(), environment)
-            self.assertEqual(
-                (root / ".local/demo-credentials.json").read_bytes(), credentials
-            )
+            self.assertEqual((root / ".local/demo-credentials.json").read_bytes(), credentials)
