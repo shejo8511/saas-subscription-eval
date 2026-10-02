@@ -43,3 +43,10 @@ Limitaciones de alcance: sin administración completa de usuarios/roles por API,
 - Se añadió rechazo de cookies no Secure para cualquier PUBLIC_ORIGIN HTTPS, también en desarrollo/test. 43 pruebas unitarias y los cuatro checks sobre 62a8c82 y a25f0bd aprobados; no se suprime ninguna regla.
 
 - Verify completo a25f0bd: backend 88 + tooling 5 aprobado y cobertura 425/452 líneas, 44/52 ramas; lint/formato/tipos frontend aprobados. Vitest 33/37, cuatro timeouts globales de 5 segundos (7,162 segundos en primera restauración), sin fallo de aserción. Exit global 1; stack/security no se ejecutaron en ese run. Incluye casos heredados del bootstrap, reproducidos también en el preflight: corrección independiente de presupuesto jsdom en fix/frontend-test-deadline / PR #4, antes de repetir controles completos. No se cuentan como verdes ejecuciones incompletas.
+
+## Presupuesto acotado de pruebas frontend — 2026-10-02
+
+Defecto operativo previo reproducido en el baseline: las primeras pruebas jsdom de shell/estado superaban el plazo por defecto de 5 segundos en Docker local. En fase 2 reaparece aun con un worker: 33/37 aprobadas, cuatro timeouts (incluye shell y estado de fase 1); la primera restauración de sesión consumió 7,162 segundos. TypeScript, backend y CI del mismo código sí aprobaron. Se corrige separadamente desde main en fix/frontend-test-deadline.
+
+Vitest usa un worker y un plazo total de 15 segundos por prueba, acotado y superior al arranque frío observado. No se cambia el plazo de las aserciones findBy/waitFor, reloj controlado, sincronización, inputs, cobertura ni comportamiento del producto. No hay retries, skips ni flags para aceptar fallos. Las 22 regresiones reales del bootstrap y los controles frontend completos se repiten con esta configuración; resultados se registran en la PR después de ejecutarse.
+
