@@ -11,7 +11,7 @@ configuration=$(mktemp -d "${TMPDIR:-/tmp}/b2b-verify.XXXXXX")
 export POSTGRES_USER=b2b POSTGRES_DB="b2b_test_$(date +%s)_$$" WEB_PORT=0
 export POSTGRES_PASSWORD
 POSTGRES_PASSWORD=$(docker run --rm python:3.12.15-slim-bookworm@sha256:7ec4715ec1f0fc9a6d4835b995d2b6e921ea23ff8b354c33f6f9fb82f5882ac7 python -c 'import secrets; print(secrets.token_hex(24))')
-export LOGIN_LIMIT=120 DEMO_CREDENTIALS=/dev/null
+export LOGIN_LIMIT=120 DEMO_CREDENTIALS=/dev/null DATABASE_TIMEOUT=10
 export ENVIRONMENT=test COOKIE_SECURE=false DEMO_SEED=false PUBLIC_ORIGIN=http://frontend:3000
 export JWT_SECRET CSRF_SECRET
 JWT_SECRET=$(docker run --rm python:3.12.15-slim-bookworm@sha256:7ec4715ec1f0fc9a6d4835b995d2b6e921ea23ff8b354c33f6f9fb82f5882ac7 python -c 'import secrets; print(secrets.token_hex(32))')

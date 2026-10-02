@@ -14,6 +14,22 @@ const accounts = JSON.parse(
 test.setTimeout(90_000);
 test.use({ trace: "off", screenshot: "off", actionTimeout: 20_000 });
 
+async function visit(page: Page, expectedStatus: number, reload = false) {
+  const identityResponse = page.waitForResponse(
+    (response) =>
+      response.url().endsWith("/auth/me") &&
+      response.request().method() === "GET",
+  );
+  const [response] = await Promise.all([
+    identityResponse,
+    reload
+      ? page.reload({ waitUntil: "domcontentloaded" })
+      : page.goto("/", { waitUntil: "domcontentloaded" }),
+  ]);
+  expect(response.status()).toBe(expectedStatus);
+  expect(await response.finished()).toBeNull();
+}
+
 async function enter(page: Page, account: Account) {
   await expect(page.getByLabel("Email", { exact: true })).toBeVisible();
   // A single evaluate keeps credential values out of Playwright locator call logs.
@@ -39,8 +55,12 @@ async function enter(page: Page, account: Account) {
       response.url().endsWith("/auth/login") &&
       response.request().method() === "POST",
   );
-  await page.getByRole("button", { name: "Entrar", exact: true }).click();
-  expect((await loginResponse).status()).toBe(200);
+  const [response] = await Promise.all([
+    loginResponse,
+    page.getByRole("button", { name: "Entrar", exact: true }).click(),
+  ]);
+  expect(response.status()).toBe(200);
+  expect(await response.finished()).toBeNull();
   await expect(page.getByRole("heading", { name: "Tu sesión" })).toBeVisible();
   await expect(page.getByText(account.company, { exact: true })).toBeVisible();
   await expect(page.getByText(account.role, { exact: true })).toBeVisible();
@@ -62,14 +82,14 @@ function checkConsole(page: Page) {
   return errors;
 }
 
-test("all four roles/companies sign in, reload and sign out through the public proxy", async ({
-  page,
-}, info) => {
-  const errors = checkConsole(page);
-  await page.goto("/");
-  for (const account of accounts) {
+for (const account of accounts) {
+  test(`${account.role} ${account.company} signs in, reloads and signs out through the public proxy`, async ({
+    page,
+  }, info) => {
+    const errors = checkConsole(page);
+    await visit(page, 401);
     await enter(page, account);
-    await page.reload();
+    await visit(page, 200, true);
     await expect(
       page.getByText(account.company, { exact: true }),
     ).toBeVisible();
@@ -100,32 +120,44 @@ test("all four roles/companies sign in, reload and sign out through the public p
         response.url().endsWith("/auth/logout") &&
         response.request().method() === "POST",
     );
-    await page.getByRole("button", { name: "Cerrar sesión" }).click();
-    expect((await logoutResponse).status()).toBe(200);
+    const [logoutResult] = await Promise.all([
+      logoutResponse,
+      page.getByRole("button", { name: "Cerrar sesión" }).click(),
+    ]);
+    expect(logoutResult.status()).toBe(200);
+    expect(await logoutResult.finished()).toBeNull();
     await expect(page.getByLabel("Email", { exact: true })).toBeVisible();
     expect(
       (await page.context().cookies()).some(
         (cookie) => cookie.name === "b2b_session",
       ),
     ).toBe(false);
-  }
-  expect(errors).toEqual([]);
-  await page.getByLabel("Email", { exact: true }).fill("");
-  await page.screenshot({
-    path: info.outputPath(`login-${info.project.name}.png`),
-    fullPage: true,
+    expect(errors).toEqual([]);
+    await page.getByLabel("Email", { exact: true }).fill("");
+    if (account === accounts[0])
+      await page.screenshot({
+        path: info.outputPath(`login-${info.project.name}.png`),
+        fullPage: true,
+      });
   });
-});
+}
 
 test("independent tenants coexist; sequential switch never reveals previous identity", async ({
   browser,
+  viewport,
 }) => {
-  const first = await browser.newContext({ baseURL: process.env.BASE_URL });
-  const second = await browser.newContext({ baseURL: process.env.BASE_URL });
+  const first = await browser.newContext({
+    baseURL: process.env.BASE_URL,
+    viewport,
+  });
+  const second = await browser.newContext({
+    baseURL: process.env.BASE_URL,
+    viewport,
+  });
   try {
     const a = await first.newPage();
     const b = await second.newPage();
-    await Promise.all([a.goto("/"), b.goto("/")]);
+    await Promise.all([visit(a, 401), visit(b, 401)]);
     await Promise.all([enter(a, accounts[0]), enter(b, accounts[2])]);
     await expect(a.getByText(accounts[2].company, { exact: true })).toHaveCount(
       0,
@@ -138,8 +170,12 @@ test("independent tenants coexist; sequential switch never reveals previous iden
         response.url().endsWith("/auth/logout") &&
         response.request().method() === "POST",
     );
-    await a.getByRole("button", { name: "Cerrar sesión" }).click();
-    expect((await logoutResponse).status()).toBe(200);
+    const [logoutResult] = await Promise.all([
+      logoutResponse,
+      a.getByRole("button", { name: "Cerrar sesión" }).click(),
+    ]);
+    expect(logoutResult.status()).toBe(200);
+    expect(await logoutResult.finished()).toBeNull();
     await expect(a.getByLabel("Email", { exact: true })).toBeVisible();
     await a.evaluate((previous) => {
       const observer = new MutationObserver(() => {
@@ -172,7 +208,7 @@ test("independent tenants coexist; sequential switch never reveals previous iden
 test("signed CSRF, cookie attributes, replay rejection and anonymous guards via Next", async ({
   page,
 }) => {
-  await page.goto("/");
+  await visit(page, 401);
   await enter(page, accounts[1]);
   const cookies = await page.context().cookies();
   const session = cookies.find((cookie) => cookie.name === "b2b_session")!;
@@ -201,7 +237,7 @@ test("signed CSRF, cookie attributes, replay rejection and anonymous guards via 
   ).toBe(2);
   await page.context().addCookies([session]);
   expect((await page.request.get("/api/v1/auth/me")).status()).toBe(401);
-  await page.reload();
+  await visit(page, 401, true);
   await expect(page.getByLabel("Email", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Tu sesión" })).toHaveCount(0);
 });
