@@ -8,6 +8,8 @@ x-backend-environment: &backend-environment
   PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-http://localhost:3000}
   DEMO_SEED: ${DEMO_SEED:-false}
   LOGIN_LIMIT: ${LOGIN_LIMIT:-30}
+  LOGIN_WINDOW_SECONDS: ${LOGIN_WINDOW_SECONDS:-60}
+  SESSION_SECONDS: ${SESSION_SECONDS:-1800}
   DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-b2b}:${POSTGRES_PASSWORD:?Run ./scripts/dev.sh to configure development}@db:5432/${POSTGRES_DB:-b2b_dev}
 
 services:
