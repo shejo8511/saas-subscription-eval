@@ -38,3 +38,15 @@ Hallazgo reproducido del probe Python: [PR #3](https://github.com/shejo8511/saas
 Merge normal comprobado: 51079deb9f4bc5a805f721b2f579b711f8129116; [CI del merge en main](https://github.com/shejo8511/saas-subscription-eval/actions/runs/37027496727), Backend/Frontend/Stack/Security success. Sin bypass ni borrado; cero revisiones requeridas según protección strict vigente. La rama auth incorpora ese main mediante a25f0bdb178f3a06385379c39a50b2c931ad4f68, conservando seed, secretos y fixtures; conflictos de scripts resueltos con espera 600 y fase 2 intacta.
 
 [CI del código actualizado a25f0bd](https://github.com/shejo8511/saas-subscription-eval/actions/runs/37027573349): cuatro checks success, 88 pytest (43 unitarias / 45 integración PG), 37 Vitest, 15 E2E. Cobertura/backend 425/452 líneas y 44/52 ramas; frontend 124/124 líneas, 133/134 statements, 38/38 funciones y 104/106 ramas. Artefactos originales comprobados. Estos resultados anteceden al commit documental final y no se atribuyen a su futuro SHA.
+
+## Corrección independiente del plazo jsdom
+
+[PR #4](https://github.com/shejo8511/saas-subscription-eval/pull/4), rama fix/frontend-test-deadline desde main 51079de, commit eb137a73026270697ccfd52851db3dac2870c8b7. `./scripts/verify.sh frontend` exit 0 local: 22 regresiones, lint/formato/tipos/build y cobertura original 100/100/100/97,05%. Informes b2b-test-1790957424-67261. [CI del HEAD](https://github.com/shejo8511/saas-subscription-eval/actions/runs/37032110460), cuatro checks success.
+
+Merge normal 59dde884e7a9f7f9fc879cefad8281f88068e228; [CI del merge](https://github.com/shejo8511/saas-subscription-eval/actions/runs/37033546639), cuatro checks success. Reglas strict, administradores incluidos y cero revisiones requeridas, auto-delete false comprobados antes de integrar. Rama conservada. Auth incorpora main en a3de1df8f0e9ef2823b446d19ed8344b8407bc7c; se conservan ambos registros QA y un worker/plazo 15 segundos, sin cambiar aserciones ni umbrales.
+
+5b3c18e6136c98d06b8ffce4712ccb9b84031849 propaga LOGIN_WINDOW_SECONDS y SESSION_SECONDS en Compose con defaults originales: configuración efectiva personalizada comprobada exit 0 y [cuatro checks](https://github.com/shejo8511/saas-subscription-eval/actions/runs/37032222380) success.
+
+## Código de fase 2 y sincronización E2E comprobados
+
+85cb8721bee645b45f9094a2f6ad49ad9c595e83 agrega sincronización explícita con HTTP 200 de login/logout antes de comprobar la identidad, sin modificar código de producción ni plazos de aserción. [CI 37048606099](https://github.com/shejo8511/saas-subscription-eval/actions/runs/37048606099): Backend, Frontend, Stack y Security **success**, 88 pytest, 5 tooling, 37 Vitest y 15 E2E. Cero controles omitidos/cancelados. Los resultados del commit documental posterior y su posible merge se comprueban después de existir y se informan en PR/cierre, no en este registro anticipadamente.

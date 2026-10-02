@@ -18,9 +18,9 @@ El cierre anterior permanece como registro histórico. Autorización nueva: sola
 
 La entrega final requiere pruebas locales completas, cobertura independiente y cuatro checks del HEAD final; los resultados se registran al existir. Ramas nunca se borran; merge únicamente con reglas/checks/aprobaciones vigentes. Estado y matriz distinguen funcionalidades futuras.
 
-## Commits de fase 2 y corrección independiente
+## Commits de fase 2 y correcciones independientes
 
-Registro comprobado antes del commit de cierre; los resultados posteriores se informan en la PR y en el cierre de sesión.
+Registro comprobado antes del commit de cierre. Incluye PR #3 (readiness) y PR #4 (presupuesto jsdom), integradas normalmente desde ramas fix creadas en main. El CI del commit documental posterior y el merge de auth se informan en PR/cierre tras existir.
 
 | Commit | Cambio |
 |---|---|
@@ -41,3 +41,17 @@ Registro comprobado antes del commit de cierre; los resultados posteriores se in
 | 747d4c8 | docs(auth): record implemented scope and verified remote evidence |
 | 51079de | fix(compose): correct bounded readiness startup (#3) |
 | a25f0bd | chore(auth): incorporate verified readiness correction from main |
+| eb137a7 | fix(test): bound cold jsdom execution within a measured deadline |
+| 5b3c18e | fix(dev): forward session lifetime and login window configuration |
+| d46a47d | docs(auth): preserve timeout failures and measured quality evidence |
+| 59dde88 | fix(test): accommodate bounded cold jsdom execution (#4) |
+| a3de1df | chore(auth): incorporate verified cold-test correction from main |
+| 85cb872 | test(auth): await HTTP success before checking concurrent session UI |
+
+## Evidencia comprobada de fase 2
+
+Código 85cb872: [cuatro checks remotos aprobados](https://github.com/shejo8511/saas-subscription-eval/actions/runs/37048606099), 43 unitarias + 45 integración PostgreSQL, 5 tooling, 37 Vitest y 15 E2E. Backend 425/452 líneas (94,03%) y 44/52 ramas (84,62%); frontend 124/124 líneas (100%), 133/134 statements (99,25%), 38/38 funciones (100%), 104/106 ramas (98,11%). Sin skips ni exclusiones artificiales; JSON/JUnit originales comprobados.
+
+Localmente, el comando completo sobre a3de1df aprobó etapas backend/frontend, cobertura y builds, pero terminó **exit 1** con 13/15 E2E; no se registra como verde. El diff a3de1df→85cb872 contiene exclusivamente el helper E2E de sincronización HTTP; las mediciones locales de las etapas backend/frontend corresponden explícitamente a a3de1df. Repetición `./scripts/verify.sh stack` sobre 85cb872 **exit 0**, 15 E2E, persistencia/recreación y segundo arranque. `./scripts/verify.sh security` sobre 85cb872 **exit 0**, cero vulnerabilidades Python/npm y cero secretos en historia/árbol. Lint/formato/tipos frontend tras el cambio, sintaxis de todos los scripts shell y whitespace: exit 0. Resultados, SHA y namespaces separados en testing.md; hallazgos corregidos y límites en qa-report.md.
+
+No hay administración de usuarios/roles por API, licencias, consumo, alertas, SSE, gráficos, pagos, registro público ni recuperación de contraseña. El rate limit global comparte presupuesto entre usuarios; no es protección distribuida completa. No se auditaron todas las bibliotecas OS de las imágenes ni un despliegue de producción. **Detenerse antes de fase 3**: la aplicación completa permanece pendiente.

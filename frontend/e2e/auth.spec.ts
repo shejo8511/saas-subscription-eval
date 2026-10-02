@@ -27,7 +27,8 @@ async function visit(page: Page, expectedStatus: number, reload = false) {
       : page.goto("/", { waitUntil: "domcontentloaded" }),
   ]);
   expect(response.status()).toBe(expectedStatus);
-  expect(await response.finished()).toBeNull();
+  if (expectedStatus === 200)
+    expect((await response.json()).company.id).toBeTruthy();
 }
 
 async function enter(page: Page, account: Account) {
@@ -60,7 +61,9 @@ async function enter(page: Page, account: Account) {
     page.getByRole("button", { name: "Entrar", exact: true }).click(),
   ]);
   expect(response.status()).toBe(200);
-  expect(await response.finished()).toBeNull();
+  const identity = await response.json();
+  expect(identity.company.name).toBe(account.company);
+  expect(identity.role).toBe(account.role);
   await expect(page.getByRole("heading", { name: "Tu sesión" })).toBeVisible();
   await expect(page.getByText(account.company, { exact: true })).toBeVisible();
   await expect(page.getByText(account.role, { exact: true })).toBeVisible();
@@ -125,7 +128,6 @@ for (const account of accounts) {
       page.getByRole("button", { name: "Cerrar sesión" }).click(),
     ]);
     expect(logoutResult.status()).toBe(200);
-    expect(await logoutResult.finished()).toBeNull();
     await expect(page.getByLabel("Email", { exact: true })).toBeVisible();
     expect(
       (await page.context().cookies()).some(
@@ -175,7 +177,6 @@ test("independent tenants coexist; sequential switch never reveals previous iden
       a.getByRole("button", { name: "Cerrar sesión" }).click(),
     ]);
     expect(logoutResult.status()).toBe(200);
-    expect(await logoutResult.finished()).toBeNull();
     await expect(a.getByLabel("Email", { exact: true })).toBeVisible();
     await a.evaluate((previous) => {
       const observer = new MutationObserver(() => {
