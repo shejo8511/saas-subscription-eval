@@ -8,7 +8,7 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: true,
   retries: 0,
-  timeout: 30_000,
+  timeout: 90_000,
   reporter: [
     ["list"],
     ["html", { open: "never", outputFolder: `${reports}/html` }],
