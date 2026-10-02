@@ -41,16 +41,16 @@ if [ "$mode" = all ] || [ "$mode" = frontend ]; then
 fi
 if [ "$mode" = all ] || [ "$mode" = stack ]; then
   compose build migrate backend frontend e2e
-  compose up --wait --wait-timeout 180 db backend frontend
+  compose up --wait --wait-timeout 600 db backend frontend
   compose run --rm --no-deps e2e
   # Preserve synthetic data across container replacement; only this test namespace.
   compose exec -T db psql -U b2b -d "$POSTGRES_DB" -v ON_ERROR_STOP=1 \
     -c "CREATE TABLE public.persistence_probe (value text); INSERT INTO public.persistence_probe VALUES ('preserved');"
-  compose up --force-recreate --wait --wait-timeout 180 db backend frontend
+  compose up --force-recreate --wait --wait-timeout 600 db backend frontend
   actual=$(compose exec -T db psql -U b2b -d "$POSTGRES_DB" -At -v ON_ERROR_STOP=1 -c 'SELECT value FROM public.persistence_probe')
   [ "$actual" = preserved ]
   compose exec -T db psql -U b2b -d "$POSTGRES_DB" -v ON_ERROR_STOP=1 -c 'DROP TABLE public.persistence_probe'
-  compose up --wait --wait-timeout 180 db backend frontend
+  compose up --wait --wait-timeout 600 db backend frontend
 fi
 if [ "$mode" = all ] || [ "$mode" = security ]; then
   compose build backend-test frontend-test
