@@ -7,6 +7,6 @@ docker run --rm --user "$(id -u):$(id -g)" -v "$(pwd):/workspace" -w /workspace 
   python scripts/local_config.py
 export PUBLIC_ORIGIN="http://localhost:${WEB_PORT:-$(sed -n 's/^WEB_PORT=//p' .env)}"
 docker compose config --quiet
-docker compose up --build --wait --wait-timeout 180 db seed backend frontend
+docker compose up --build --wait --wait-timeout 600 db seed backend frontend
 printf 'Base disponible. UI: http://localhost:%s · API: /api/docs\n' "$(docker compose port frontend 3000 | sed 's/.*://')"
 printf 'Credenciales demo locales: .local/demo-credentials.json (no compartir).\n'
