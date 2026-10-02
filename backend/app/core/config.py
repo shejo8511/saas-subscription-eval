@@ -47,6 +47,8 @@ class Settings(BaseSettings):
             or origin.username
         ):
             raise ValueError("PUBLIC_ORIGIN must be an exact HTTP(S) origin")
+        if origin.scheme == "https" and not self.cookie_secure:
+            raise ValueError("HTTPS requires Secure cookies in every environment")
         if self.jwt_secret == self.csrf_secret:
             raise ValueError("JWT and CSRF keys must be independent")
         if self.environment == "production":

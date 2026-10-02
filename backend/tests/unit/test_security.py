@@ -140,6 +140,7 @@ def test_signed_csrf_binding_rotation_reuse_and_origin_policy() -> None:
 @pytest.mark.parametrize(
     "kwargs",
     [
+        {"public_origin": "https://localhost:3000"},
         {"jwt_secret": "demo"},
         {"csrf_secret": "0" * 64},
         {"public_origin": "http://localhost:3000/path"},
