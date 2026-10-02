@@ -1,0 +1,108 @@
+name: saas-subscriptions
+
+x-backend-environment: &backend-environment
+  DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-b2b}:${POSTGRES_PASSWORD:?Run ./scripts/dev.sh to configure development}@db:5432/${POSTGRES_DB:-b2b_dev}
+
+services:
+  db:
+    image: postgres:17.11-bookworm@sha256:639ab7ceb90e13123085b741fb31ef493fba25463002f6da665352e7b534b652
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-b2b}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run ./scripts/dev.sh to configure development}
+      POSTGRES_DB: ${POSTGRES_DB:-b2b_dev}
+    volumes:
+      - database-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+
+  migrate:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      target: runtime
+    environment: *backend-environment
+    command: ["alembic", "upgrade", "head"]
+    depends_on:
+      db:
+        condition: service_healthy
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      target: runtime
+    environment: *backend-environment
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/ready', timeout=4)"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      target: runtime
+    ports:
+      - "127.0.0.1:${WEB_PORT:-3000}:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/v1/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  backend-test:
+    profiles: ["test"]
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      target: test
+    environment:
+      <<: *backend-environment
+      TEST_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-b2b}:${POSTGRES_PASSWORD:?Missing local configuration}@db:5432/${POSTGRES_DB:-b2b_dev}
+      COVERAGE_FILE: /reports/backend/.coverage
+    volumes:
+      - ${REPORTS_DIR:-./reports}:/reports
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend-test:
+    profiles: ["test"]
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      target: test
+    volumes:
+      - ${REPORTS_DIR:-./reports}:/reports
+
+  e2e:
+    profiles: ["test"]
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      target: e2e
+    environment:
+      BASE_URL: http://frontend:3000
+      PLAYWRIGHT_REPORT_DIR: /reports/playwright
+    volumes:
+      - ${REPORTS_DIR:-./reports}/playwright:/reports/playwright
+    command: ["sh", "-c", "npm run e2e -- --output=/reports/playwright/results"]
+    depends_on:
+      frontend:
+        condition: service_healthy
+
+volumes:
+  database-data:

@@ -19,3 +19,4 @@ test-results/
 .DS_Store
 .impeccable/
 !.impeccable/design.json
+.gitleaks-cache/
