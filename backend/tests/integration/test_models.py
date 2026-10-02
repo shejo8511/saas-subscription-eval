@@ -26,7 +26,7 @@ pytestmark = pytest.mark.integration
     ],
 )
 async def test_database_constraints(database_url: str, invalid: str) -> None:
-    db = Database(Settings(database_url=database_url))
+    db = Database(Settings(database_url=database_url, database_timeout=10))
     try:
         async with db.sessions() as session:
             company = Company(name="Constraint probe")
