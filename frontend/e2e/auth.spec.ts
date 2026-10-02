@@ -36,12 +36,8 @@ async function enter(page: Page, account: Account) {
   );
   await page.getByRole("button", { name: "Entrar", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Tu sesión" })).toBeVisible();
-  await expect(
-    page.locator("dd").filter({ hasText: account.company }),
-  ).toBeVisible();
-  await expect(
-    page.locator("dd").filter({ hasText: account.role }),
-  ).toBeVisible();
+  await expect(page.getByText(account.company, { exact: true })).toBeVisible();
+  await expect(page.getByText(account.role, { exact: true })).toBeVisible();
 }
 
 function checkConsole(page: Page) {
@@ -69,7 +65,7 @@ test("all four roles/companies sign in, reload and sign out through the public p
     await enter(page, account);
     await page.reload();
     await expect(
-      page.locator("dd").filter({ hasText: account.company }),
+      page.getByText(account.company, { exact: true }),
     ).toBeVisible();
     const response = await page.request.get("/api/v1/auth/me");
     expect(response.status()).toBe(200);
