@@ -34,7 +34,13 @@ async function enter(page: Page, account: Account) {
     },
     { email: account.email, password: account.password },
   );
+  const loginResponse = page.waitForResponse(
+    (response) =>
+      response.url().endsWith("/auth/login") &&
+      response.request().method() === "POST",
+  );
   await page.getByRole("button", { name: "Entrar", exact: true }).click();
+  expect((await loginResponse).status()).toBe(200);
   await expect(page.getByRole("heading", { name: "Tu sesión" })).toBeVisible();
   await expect(page.getByText(account.company, { exact: true })).toBeVisible();
   await expect(page.getByText(account.role, { exact: true })).toBeVisible();
@@ -127,7 +133,13 @@ test("independent tenants coexist; sequential switch never reveals previous iden
     await expect(b.getByText(accounts[0].company, { exact: true })).toHaveCount(
       0,
     );
+    const logoutResponse = a.waitForResponse(
+      (response) =>
+        response.url().endsWith("/auth/logout") &&
+        response.request().method() === "POST",
+    );
     await a.getByRole("button", { name: "Cerrar sesión" }).click();
+    expect((await logoutResponse).status()).toBe(200);
     await expect(a.getByLabel("Email", { exact: true })).toBeVisible();
     await a.evaluate((previous) => {
       const observer = new MutationObserver(() => {
