@@ -22,3 +22,9 @@ Verificaciones del producto: sin vulnerabilidades conocidas en el cierre transit
 Se inspeccionaron conjuntamente capturas reales de escritorio y móvil; no se encontraron cambios materiales necesarios para el shell. Detector mecánico: lista vacía. E2E comprueba 375/768/1440, consola, teclado y proxy real. No se extiende ese resultado a un dashboard aún inexistente. Capturas y procedencia en screenshots/README.md.
 
 No quedan bloqueos de alcance fase 1 identificados. Autenticación, autorización, concurrencia de negocio y SSE no se han probado porque no forman parte de esta fase; permanecen pendientes en la matriz. El resultado del commit documental final se comprueba en GitHub después de escribirlo.
+
+## Presupuesto acotado de pruebas frontend — 2026-10-02
+
+Defecto operativo previo reproducido en el baseline: las primeras pruebas jsdom de shell/estado superaban el plazo por defecto de 5 segundos en Docker local. En fase 2 reaparece aun con un worker: 33/37 aprobadas, cuatro timeouts (incluye shell y estado de fase 1); la primera restauración de sesión consumió 7,162 segundos. TypeScript, backend y CI del mismo código sí aprobaron. Se corrige separadamente desde main en fix/frontend-test-deadline.
+
+Vitest usa un worker y un plazo total de 15 segundos por prueba, acotado y superior al arranque frío observado. No se cambia el plazo de las aserciones findBy/waitFor, reloj controlado, sincronización, inputs, cobertura ni comportamiento del producto. No hay retries, skips ni flags para aceptar fallos. Las 22 regresiones reales del bootstrap y los controles frontend completos se repiten con esta configuración; resultados se registran en la PR después de ejecutarse.
