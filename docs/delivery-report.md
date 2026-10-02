@@ -52,6 +52,8 @@ Registro comprobado antes del commit de cierre. Incluye PR #3 (readiness), PR #4
 | bec5aa2 | fix(test): avoid awaiting unread authentication responses |
 | 9623188 | fix(test): synchronize bounded browser journeys (#5) |
 | 47f1ec5 | chore(auth): incorporate verified browser regression correction from main |
+| 0b5b3d3 | docs(auth): record completed phase 2 validation and delivery evidence |
+| f2b099f | fix(test): bind session restoration to the newly navigated document |
 
 ## Evidencia comprobada de fase 2
 
@@ -68,3 +70,13 @@ No hay administración de usuarios/roles por API, licencias, consumo, alertas, S
 PR #5 integrada en main 9623188 tras sus checks/local y CI de merge aprobados. feature/auth-tenancy conserva todo el historial. La PR #2 y el HEAD documental posterior se cierran únicamente tras verificar sus cuatro checks/reglas; el SHA de ese commit y merge, CI de main, smoke limpio final y ramas retenidas se reportan en PR/cierre después de existir. Ninguna aprobación externa inventada.
 
 Arranque: ./scripts/dev.sh, http://localhost:3000; consultar localmente `less .local/demo-credentials.json`. Probar Admin/User de Empresa Aurora y Empresa Pacífico, con perfiles separados para simultaneidad o logout entre cuentas. Seed no asigna licencias ni crea consumo. Smoke previo limpio 85cb872 exit 0 y sus límites constan en testing; se vuelve a comprobar el estado del merge desde worktree limpio. Sin despliegue cloud ni auditoría OS completa. **Detenerse antes de fase 3**; la aplicación completa permanece pendiente.
+
+## Cierre de validación del helper y runtime
+
+**f2b099f3a0ef2981b14f950e04b64cac3e512b2a**: `./scripts/verify.sh stack` local **exit 0**, reports/b2b-test-1790979860-1671, 24/24 E2E, tipos/build de producción, persistencia/recreación y segundo arranque. [CI exacto](https://github.com/shejo8511/saas-subscription-eval/actions/runs/37068925887): Backend/Frontend/Stack/Security success, 43 unitarias + 45 integración PG, 5 tooling, 37 Vitest y 24 E2E; artefactos originales comprobados. Sin skips ni retries. Lint, formato y comprobación estricta del helper local: exit 0.
+
+El diff 47f1ec5→f2b099f contiene únicamente documentos y el helper E2E de restauración. Backend, frontend runtime/configuración, lockfiles, Compose y scripts son idénticos: el all local exit 0 y sus coberturas corresponden explícitamente a 47f1ec5; la repetición local del stack y los cuatro checks remotos corresponden a f2b099f. Backend 425/452 líneas y 44/52 ramas; frontend 124/124 líneas, 133/134 statements, 38/38 funciones y 104/106 ramas. El fallo de 0b5b3d3 (23/24) permanece documentado como exit 1.
+
+Primer stack local f2b099f: exit 1, 23/24, reports/b2b-test-1790977686-77991. Next registró ECONNRESET al proxy de /health; API no registró error de aplicación. Tras builds largos, Docker/VM consumían recursos elevados; es una observación, no una causa probada del reset. Se detuvo limpiamente PostgreSQL original, se reinició Docker Desktop y se restauró el mismo contenedor/volumen, comparados idénticos (exit 0). No se cambiaron código, configuración global, timeouts ni filtros de errores. La repetición conserva todas las pruebas y sus recursos propios se limpian.
+
+El commit documental posterior y merge #2 se comprueban después de existir y se informan en PR/cierre, junto con CI en main, smoke limpio final y ramas conservadas. No se atribuyen resultados a un SHA futuro. **Detenerse antes de fase 3.**
