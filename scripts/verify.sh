@@ -49,7 +49,7 @@ fi
 if [ "$mode" = all ] || [ "$mode" = stack ]; then
   compose build migrate seed backend backend-test frontend e2e
   compose up --wait --wait-timeout 180 db backend frontend
-  compose run --rm --no-deps backend-test python tests/e2e_fixture.py
+  compose run --rm --no-deps backend-test python -m tests.e2e_fixture
   compose run --rm --no-deps e2e
   # Preserve synthetic data across container replacement; only this test namespace.
   compose exec -T db psql -U b2b -d "$POSTGRES_DB" -v ON_ERROR_STOP=1 \
