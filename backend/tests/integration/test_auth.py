@@ -340,3 +340,36 @@ def test_commit_failure_rolls_back_without_false_success(auth, monkeypatch, oper
             assert list(await session.scalars(select(AuthSession))) == []
 
         mutate(client, count)
+
+
+@pytest.mark.parametrize("case", ["tampered", "missing_claim", "none_algorithm", "foreign_csrf"])
+def test_invalid_tokens_are_rejected_by_real_http_dependencies(auth, case):
+    client, accounts, password, config = auth
+    assert sign_in(client, accounts[0], password).status_code == 200
+    token = client.cookies.get("b2b_session")
+    claims = jwt.decode(
+        token, config.jwt_secret.get_secret_value(), algorithms=["HS256"], audience="b2b-web"
+    )
+    if case == "foreign_csrf":
+        old_csrf = csrf(client)["X-CSRF-Token"]
+        assert sign_in(client, accounts[2], password).status_code == 200
+        new_token = client.cookies.get("b2b_session")
+        client.cookies.clear()
+        client.cookies.set("b2b_session", new_token)
+        client.cookies.set("b2b_csrf", old_csrf)
+        response = client.post(
+            "/api/v1/auth/logout",
+            headers={"Origin": config.public_origin, "X-CSRF-Token": old_csrf},
+        )
+        assert response.status_code == 403
+        return
+    if case == "tampered":
+        token = token[:-10] + "abcdefghij"
+    if case == "missing_claim":
+        claims.pop("iat")
+        token = jwt.encode(claims, config.jwt_secret.get_secret_value(), algorithm="HS256")
+    if case == "none_algorithm":
+        token = jwt.encode(claims, None, algorithm="none")
+    client.cookies.clear()
+    client.cookies.set("b2b_session", token)
+    assert client.get("/api/v1/auth/me").status_code == 401
