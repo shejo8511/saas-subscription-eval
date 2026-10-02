@@ -54,6 +54,13 @@ async def test_migrations_preserve_existing_data(database_url: str) -> None:
         )
         assert not await database.is_ready()
         await asyncio.to_thread(
+            subprocess.run,
+            ["alembic", "upgrade", "0001_bootstrap"],
+            cwd=cwd,
+            env=environment,
+            check=True,
+        )
+        await asyncio.to_thread(
             subprocess.run, ["alembic", "upgrade", "head"], cwd=cwd, env=environment, check=True
         )
         await asyncio.to_thread(
@@ -66,7 +73,7 @@ async def test_migrations_preserve_existing_data(database_url: str) -> None:
             )
             assert (
                 await connection.scalar(text("SELECT version_num FROM alembic_version"))
-                == "0001_bootstrap"
+                == "0002_auth_tenancy"
             )
             await connection.execute(text("DROP TABLE public.migration_probe"))
         assert await database.is_ready()

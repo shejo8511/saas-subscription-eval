@@ -17,3 +17,6 @@ reports
 docs
 .impeccable
 CODEX_PLAN_SUSCRIPCIONES_B2B.md
+
+.local/
+PROMPT_FASE_2_CODEX_SUSCRIPCIONES_B2B.txt

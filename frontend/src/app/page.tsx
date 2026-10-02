@@ -1,3 +1,5 @@
+import { SessionRoot } from "@/features/auth/session";
+import { SessionPanel } from "@/features/auth/session-panel";
 import { SystemStatus } from "@/components/system-status";
 
 export default function Home() {
@@ -13,26 +15,26 @@ export default function Home() {
       </header>
       <main id="main" className="page-content">
         <div className="intro">
-          <h1>Una base para gestionar tus suscripciones.</h1>
-          <p>
-            El entorno inicial conecta la interfaz, la API y la base de datos.
-            Comprueba su disponibilidad antes de continuar.
-          </p>
+          <h1>Accede a tu espacio de empresa.</h1>
+          <p>Consulta tu identidad, empresa y rol con una sesión segura.</p>
         </div>
+        <SessionRoot>
+          <SessionPanel />
+        </SessionRoot>
         <SystemStatus />
         <section className="scope-section" aria-labelledby="scope-heading">
           <h2 id="scope-heading">Alcance de esta entrega</h2>
           <div className="scope-content">
-            <p>Base ejecutable · Fase 1</p>
+            <p>Autenticación · Fase 2</p>
             <p>
-              La autenticación, la gestión de licencias y las métricas de
-              consumo se incorporarán en las siguientes fases.
+              La gestión de licencias y las métricas de consumo se incorporarán
+              en las siguientes fases.
             </p>
           </div>
         </section>
       </main>
       <footer className="site-footer">
-        Entorno de evaluación · Sin cuentas de acceso todavía
+        Entorno de evaluación · Dos empresas de demostración
       </footer>
     </>
   );

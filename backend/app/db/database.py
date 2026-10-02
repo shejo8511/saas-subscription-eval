@@ -1,5 +1,5 @@
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from app.core.config import Settings
 
@@ -14,6 +14,8 @@ class Database:
                 "server_settings": {"statement_timeout": "3000"},
             },
         )
+
+        self.sessions = async_sessionmaker(self.engine, expire_on_commit=False)
 
     async def is_ready(self) -> bool:
         async with self.engine.connect() as connection:

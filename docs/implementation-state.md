@@ -1,5 +1,11 @@
 # Estado de implementación
 
+## Ejecución autorizada de fase 2 — 2026-10-02
+
+El propietario autoriza exclusivamente autenticación, empresas y seguridad base. Se trabaja en feature/auth-tenancy desde origin/main c561650925f45b94eee4e9b0da1bae131f98580b, sin commits directos a main. PR #1 integrada y rama bootstrap preservada. Preflight: árbol limpio, origin público conservado, Docker disponible, permisos push/admin, cuatro checks obligatorios y auto-delete desactivado. La verificación base se ejecuta en el árbol histórico mientras la implementación usa un worktree propio. Fase 2 implementada y validada en código; cierre del HEAD documental y merge se comprueban después de existir. Fases 3–7 pendientes y no autorizadas. Las anotaciones siguientes son el registro histórico intacto del cierre anterior.
+
+## Registro histórico del cierre de fase 1
+
 Fecha: 2026-10-01 (America/Guayaquil). Autorización: exclusivamente fases 0 y 1. La aplicación completa permanece pendiente.
 
 | Fase | Estado | Rama / evidencia |
@@ -20,3 +26,29 @@ Fecha: 2026-10-01 (America/Guayaquil). Autorización: exclusivamente fases 0 y 1
 Arranque: `./scripts/dev.sh`; verificación: `./scripts/verify.sh`. README y testing.md describen resultados y artefactos. PostgreSQL mantiene datos; no hay cuentas ni seeds de negocio. No hay bloqueos de destino, permisos o autenticación. La integración exige todos los checks del HEAD final, base actualizada y reglas vigentes; jamás bypass ni borrado de rama.
 
 **Detenerse antes de fase 2.** Siguiente fase autorizable: feature/auth-tenancy desde main actualizado, solamente si el propietario la autoriza en una nueva ejecución.
+
+## Avance comprobado — fase 2
+
+Autorización vigente: exclusivamente fase 2. Código **47f1ec5522dbcab667c882e706ed39320c84e662**, feature/auth-tenancy; [PR #2](https://github.com/shejo8511/saas-subscription-eval/pull/2). Base actual main **9623188985b05a7494885cab6d1e44a46f1126b8**, con correcciones independientes #3 readiness, #4 jsdom y #5 sincronización E2E, todas integradas normalmente con CI del HEAD/merge aprobado. Sin reset ni commits directos a main.
+
+Implementados empresas/usuarios/suscripciones/sesiones con constraints y migración 0002 posterior al baseline intacto, seed idempotente de dos empresas, JWT/Argon2/CSRF, permisos/estados actuales en PostgreSQL, errores sanitizados, límite de login compartido y UI mínima accesible con sesión/caché.
+
+[CI de 47f1ec5](https://github.com/shejo8511/saas-subscription-eval/actions/runs/37065043897): Backend/Frontend/Stack/Security success, 43 unitarias + 45 integración PostgreSQL, 5 tooling, 37 Vitest y 24 E2E. Artefactos originales comprobados. Backend 425/452 líneas (94,03%) y 44/52 ramas (84,62%); frontend 124/124 líneas (100%), 133/134 statements (99,25%), 38/38 funciones (100%) y 104/106 ramas (98,11%). Sin skips ni exclusiones artificiales.
+
+Local: `./scripts/verify.sh` **exit 0** en ese código, reports/b2b-test-1790975315-52566: suites, lint/formato/tipos, builds, E2E real, persistencia/recreación, segundo arranque y scans aprobados. Los fallos previos permanecen identificados como exit 1 en testing/QA. Smoke limpio previo de 85cb872 exit 0: dos dev.sh, datos/hash/permisos conservados, sesión vigente 200 y revocada 401 tras reinicio real; no se atribuye ese smoke al SHA posterior. El estado final se vuelve a comprobar desde entorno limpio después del merge, sin alterar datos originales.
+
+Al escribir este documento, los checks del commit documental posterior y el posible merge de #2 todavía requieren comprobación. Sus SHA, resultados y ramas retenidas se informan en PR/cierre después de existir; no se inventan resultados futuros ni revisiones externas.
+
+El CI de 0b5b3d3 aprobó tres checks pero Stack falló 23/24 por capturar un /me del documento anterior durante reload. La corrección del helper delimita la nueva navegación y conserva lectura JSON/controles; se verifica con stack local y los cuatro checks del nuevo HEAD antes de integrar. El runtime coincide con 47f1ec5, cuyo all local y cobertura siguen identificados con ese SHA. Evidencia posterior al último commit se publica en PR/cierre.
+
+**Detenerse antes de fase 3.** Fases 3–7 pendientes y sin autorización; sin CRUD administrativo, cambios de rol/estado por API, licencias, consumo, alertas, SSE ni dashboard completo. Se conserva el registro histórico de fase 1. La aplicación completa permanece pendiente.
+
+## Cierre de validación del helper y runtime
+
+**f2b099f3a0ef2981b14f950e04b64cac3e512b2a**: `./scripts/verify.sh stack` local **exit 0**, reports/b2b-test-1790979860-1671, 24/24 E2E, tipos/build de producción, persistencia/recreación y segundo arranque. [CI exacto](https://github.com/shejo8511/saas-subscription-eval/actions/runs/37068925887): Backend/Frontend/Stack/Security success, 43 unitarias + 45 integración PG, 5 tooling, 37 Vitest y 24 E2E; artefactos originales comprobados. Sin skips ni retries. Lint, formato y comprobación estricta del helper local: exit 0.
+
+El diff 47f1ec5→f2b099f contiene únicamente documentos y el helper E2E de restauración. Backend, frontend runtime/configuración, lockfiles, Compose y scripts son idénticos: el all local exit 0 y sus coberturas corresponden explícitamente a 47f1ec5; la repetición local del stack y los cuatro checks remotos corresponden a f2b099f. Backend 425/452 líneas y 44/52 ramas; frontend 124/124 líneas, 133/134 statements, 38/38 funciones y 104/106 ramas. El fallo de 0b5b3d3 (23/24) permanece documentado como exit 1.
+
+Primer stack local f2b099f: exit 1, 23/24, reports/b2b-test-1790977686-77991. Next registró ECONNRESET al proxy de /health; API no registró error de aplicación. Tras builds largos, Docker/VM consumían recursos elevados; es una observación, no una causa probada del reset. Se detuvo limpiamente PostgreSQL original, se reinició Docker Desktop y se restauró el mismo contenedor/volumen, comparados idénticos (exit 0). No se cambiaron código, configuración global, timeouts ni filtros de errores. La repetición conserva todas las pruebas y sus recursos propios se limpian.
+
+El commit documental posterior y merge #2 se comprueban después de existir y se informan en PR/cierre, junto con CI en main, smoke limpio final y ramas conservadas. No se atribuyen resultados a un SHA futuro. **Detenerse antes de fase 3.**
