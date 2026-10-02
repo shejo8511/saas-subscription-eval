@@ -17,3 +17,27 @@ Ejecución de la base: `./scripts/dev.sh`, UI http://localhost:3000 y OpenAPI /a
 El cierre anterior permanece como registro histórico. Autorización nueva: solamente autenticación, empresas y seguridad base. feature/auth-tenancy desde main actualizado c561650; [PR #2 real](https://github.com/shejo8511/saas-subscription-eval/pull/2). FastAPI conserva negocio, Next/React/TS/Tailwind UI y proxy, PostgreSQL real; migración posterior 0002, seed idempotente, JWT/Argon2/CSRF, permisos actuales y UI mínima. Sin fases 3–7.
 
 La entrega final requiere pruebas locales completas, cobertura independiente y cuatro checks del HEAD final; los resultados se registran al existir. Ramas nunca se borran; merge únicamente con reglas/checks/aprobaciones vigentes. Estado y matriz distinguen funcionalidades futuras.
+
+## Commits de fase 2 y corrección independiente
+
+Registro comprobado antes del commit de cierre; los resultados posteriores se informan en la PR y en el cierre de sesión.
+
+| Commit | Cambio |
+|---|---|
+| 046d443 | docs(auth): record phase 2 authorization and verified base |
+| 83815a3 | feat(tenancy): add constrained PostgreSQL models and migration |
+| b05c9f8 | feat(auth): add revocable JWT sessions, signed CSRF and current tenant permissions |
+| db7c7a9 | feat(dev): seed two companies with preserved local credentials and isolated fixtures |
+| 3ec82e3 | feat(web): add accessible login and isolated session context with real API |
+| 0fbe06e | test(auth): verify unsigned tokens and cross-session CSRF over HTTP |
+| 76ab940 | fix(dev): align script formatting with the backend quality configuration |
+| e1b5b79 | fix(test): invoke isolated E2E fixture as a Python module |
+| 82edd51 | fix(dev): generate protected local files as the host user |
+| 7423c85 | fix(test): identify company and role by exact accessible text |
+| b7ec8db | test(tenancy): use bounded connection timeout for isolated PostgreSQL fixtures |
+| 62a8c82 | fix(auth): require Secure cookies for every HTTPS origin |
+| 0423ec5 | fix(compose): allow bounded Python startup time in readiness probe |
+| 24dcf8e | fix(compose): bound cold startup and reduce readiness process churn |
+| 747d4c8 | docs(auth): record implemented scope and verified remote evidence |
+| 51079de | fix(compose): correct bounded readiness startup (#3) |
+| a25f0bd | chore(auth): incorporate verified readiness correction from main |

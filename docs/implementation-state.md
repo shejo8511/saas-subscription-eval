@@ -4,6 +4,8 @@
 
 El propietario autoriza exclusivamente autenticación, empresas y seguridad base. Se trabaja en feature/auth-tenancy desde origin/main c561650925f45b94eee4e9b0da1bae131f98580b, sin commits directos a main. PR #1 integrada y rama bootstrap preservada. Preflight: árbol limpio, origin público conservado, Docker disponible, permisos push/admin, cuatro checks obligatorios y auto-delete desactivado. La verificación base se ejecuta en el árbol histórico mientras la implementación usa un worktree propio. Fase 2 en curso; fases 3–7 pendientes y no autorizadas. Las anotaciones siguientes son el registro histórico intacto del cierre anterior.
 
+## Registro histórico del cierre de fase 1
+
 Fecha: 2026-10-01 (America/Guayaquil). Autorización: exclusivamente fases 0 y 1. La aplicación completa permanece pendiente.
 
 | Fase | Estado | Rama / evidencia |

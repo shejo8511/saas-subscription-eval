@@ -30,3 +30,11 @@ PR #1 integrada en c561650925f45b94eee4e9b0da1bae131f98580b; feature/project-boo
 [PR real #2 hacia main](https://github.com/shejo8511/saas-subscription-eval/pull/2). Commits incrementales docs/tenancy/auth/dev/web/tests/format. La PR se abre en borrador mientras termina la evidencia. Checks del HEAD final y eventual merge se informan después de existir; ningún check anterior se atribuye al commit documental posterior. No hay revisión externa inventada ni autorización de fases posteriores.
 
 Verificación remota comprobada del código antes del cierre documental: **7423c85baa1d4cbaac2992350d5bf5924cd1c6da**, [run 37020174511](https://github.com/shejo8511/saas-subscription-eval/actions/runs/37020174511): Backend/Frontend/Stack/Security success, 87 pytest, 37 Vitest y 15 Playwright. No se atribuye esta ejecución al commit documental aún no creado; su CI y merge se comprobarán después y se informarán al cierre.
+
+## Corrección independiente del bootstrap y base actualizada
+
+Hallazgo reproducido del probe Python: [PR #3](https://github.com/shejo8511/saas-subscription-eval/pull/3), rama fix/readiness-probe-timeout desde main c561650. Commits 0423ec5 y 24dcf8e. Verificación local `./scripts/verify.sh stack` exit 0 sobre 24dcf8e, 6 E2E y persistencia/arranque repetido (reports/b2b-test-1790954235-34409). [CI del HEAD](https://github.com/shejo8511/saas-subscription-eval/actions/runs/37025006597), cuatro checks success.
+
+Merge normal comprobado: 51079deb9f4bc5a805f721b2f579b711f8129116; [CI del merge en main](https://github.com/shejo8511/saas-subscription-eval/actions/runs/37027496727), Backend/Frontend/Stack/Security success. Sin bypass ni borrado; cero revisiones requeridas según protección strict vigente. La rama auth incorpora ese main mediante a25f0bdb178f3a06385379c39a50b2c931ad4f68, conservando seed, secretos y fixtures; conflictos de scripts resueltos con espera 600 y fase 2 intacta.
+
+[CI del código actualizado a25f0bd](https://github.com/shejo8511/saas-subscription-eval/actions/runs/37027573349): cuatro checks success, 88 pytest (43 unitarias / 45 integración PG), 37 Vitest, 15 E2E. Cobertura/backend 425/452 líneas y 44/52 ramas; frontend 124/124 líneas, 133/134 statements, 38/38 funciones y 104/106 ramas. Artefactos originales comprobados. Estos resultados anteceden al commit documental final y no se atribuyen a su futuro SHA.

@@ -1,6 +1,6 @@
 # Arquitectura de la base
 
-Decisiones de implementación, no requisitos adicionales del PDF. Alcance actual: fase 1.
+Decisiones de implementación, no requisitos adicionales del PDF. Se conserva el diseño histórico del bootstrap y se documenta al final su evolución autorizada a fase 2.
 
 ```mermaid
 flowchart LR
@@ -64,3 +64,5 @@ El rate limit es global por servicio: 30 intentos por ventana de 60 segundos por
 El script local ejecuta generación bajo lock de archivo y reemplazo atómico, conserva valores existentes y guarda .env/.local/demo-credentials.json con 0600. Seed explícito one-shot antes del backend, dos empresas con Admin/User y cuotas 3 licencias/10 API; on-conflict conserva roles, estados, passwords y cuotas. Seed se ejecuta con UID 0 solo para leer el archivo 0600 montado read-only; API/UI siguen sin root. No se montan credenciales en frontend ni en imágenes. Fixtures E2E independientes y protegidas en un directorio temporal eliminado al finalizar; informes públicos no contienen passwords, cookies ni trazas auth.
 
 Context expone únicamente estado derivado de la consulta de sesión en TanStack Query: comprobación, autenticado, anónimo, red y servidor. La recarga usa /me, con comprobación de expiración y foco/intervalo. Cambiar identidad cancela consultas y limpia caché; no se reintentan mutaciones. No hay redirecciones configurables: toda la sesión vive en /, evitando destinos externos. UI mínima con identidad/empresa/rol/logout, labels y foco; sin dashboard administrativo.
+
+HTTPS exige Secure en todos los entornos; desarrollo HTTP sin Secure se limita a localhost/127.0.0.1. La corrección operativa independiente de PR #3 mantiene readiness real y timeout HTTP 4, con presupuesto del proceso probe 20 segundos, intervalo 15 y espera global Compose 600 segundos para arranques fríos locales. No cambia umbrales, SQL ni aceptación de errores.

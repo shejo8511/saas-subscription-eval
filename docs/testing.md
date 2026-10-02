@@ -67,3 +67,14 @@ Seguridad conserva scans completos de dependencias y secretos del árbol/histori
 Los resultados finales y SHA verificados se agregan después de ejecutar los controles; no se atribuyen métricas históricas al nuevo código.
 
 Medición remota comprobada sobre 7423c85baa1d4cbaac2992350d5bf5924cd1c6da, [CI 37020174511](https://github.com/shejo8511/saas-subscription-eval/actions/runs/37020174511): 42 unitarias + 45 integración PostgreSQL = 87; 5 tests de herramientas (4 umbral, 1 configuración); 37 Vitest; 15 E2E. Backend 423/450 líneas = 94%, 42/50 ramas = 84%, cero líneas excluidas. Frontend 124/124 líneas = 100%, 133/134 statements = 99.25%, 38/38 funciones = 100%, 104/106 ramas = 98.11%; cero skips. Los cuatro jobs y sus comandos finalizaron con exit 0. Artefactos originales descargados para comprobar JSON/JUnit/capturas; resultados locales completos se registran separadamente.
+
+## Medición comprobada del código actualizado de fase 2
+
+SHA a25f0bdb178f3a06385379c39a50b2c931ad4f68 (incluye main 51079de); [CI 37027573349](https://github.com/shejo8511/saas-subscription-eval/actions/runs/37027573349), Backend/Frontend/Stack/Security success. 43 unitarias + 45 integración PostgreSQL = 88 pytest, 5 tooling, 37 Vitest y 15 E2E, sin skips.
+
+| Capa | Líneas | Statements | Funciones | Ramas |
+|---|---|---|---|---|
+| Backend | 425/452 = 94,03% | — | — | 44/52 = 84,62% |
+| Frontend | 124/124 = 100% | 133/134 = 99,25% | 38/38 = 100% | 104/106 = 98,11% |
+
+Coverage JSON y JUnit originales descargados; backend cero líneas excluidas, frontend cero skips. Los umbrales se comprueban por separado, no con el porcentaje combinado 93,06% que también muestra coverage.py. El backend local en reports/b2b-test-1790955084-43273 reproduce los mismos denominadores/resultados, 88 + 5 pruebas y Ruff/formato/mypy exit 0; la ejecución completa terminó después con exit 1 en frontend: 33/37 y cuatro timeouts del plazo global de 5 segundos; stack/security no llegaron a ejecutarse en ese run. Se registra el fallo y se corrige el presupuesto medido mediante PR independiente, sin darlo por aprobado.
