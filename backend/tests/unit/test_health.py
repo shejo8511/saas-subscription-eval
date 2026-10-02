@@ -18,7 +18,7 @@ def test_process_health_does_not_require_database() -> None:
         assert client.get("/api/v1/health").json() == {"status": "ok"}
         assert client.get("/api/v1/health").status_code == 200
         assert client.get("/api/v1/usage").status_code == 404
-        assert client.get("/api/v1/auth/me").status_code == 404
+        assert client.get("/api/v1/auth/me").status_code == 401
 
 
 @pytest.mark.parametrize("ready,status", [(True, 200), (False, 503)])
