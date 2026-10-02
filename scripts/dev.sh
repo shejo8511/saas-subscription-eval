@@ -13,5 +13,5 @@ if [ ! -f .env ]; then
   trap - 0
 fi
 docker compose config --quiet
-docker compose up --build --wait --wait-timeout 180 db backend frontend
+docker compose up --build --wait --wait-timeout 600 db backend frontend
 printf 'Base disponible. UI: http://localhost:%s · API: /api/docs\n' "$(docker compose port frontend 3000 | sed 's/.*://')"
