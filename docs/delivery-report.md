@@ -20,7 +20,7 @@ La entrega final requiere pruebas locales completas, cobertura independiente y c
 
 ## Commits de fase 2 y correcciones independientes
 
-Registro comprobado antes del commit de cierre. Incluye PR #3 (readiness) y PR #4 (presupuesto jsdom), integradas normalmente desde ramas fix creadas en main. El CI del commit documental posterior y el merge de auth se informan en PR/cierre tras existir.
+Registro comprobado antes del commit de cierre. Incluye PR #3 (readiness), PR #4 (presupuesto jsdom) y PR #5 (recorridos E2E), integradas normalmente desde ramas fix creadas en main. El CI del commit documental posterior y el merge de auth se informan en PR/cierre tras existir.
 
 | Commit | Cambio |
 |---|---|
@@ -47,6 +47,11 @@ Registro comprobado antes del commit de cierre. Incluye PR #3 (readiness) y PR #
 | 59dde88 | fix(test): accommodate bounded cold jsdom execution (#4) |
 | a3de1df | chore(auth): incorporate verified cold-test correction from main |
 | 85cb872 | test(auth): await HTTP success before checking concurrent session UI |
+| 116dd5f | test(auth): synchronize restoration and bound isolated PostgreSQL connections |
+| aaf6d84 | fix(test): synchronize browser checks with bounded HTTP journeys |
+| bec5aa2 | fix(test): avoid awaiting unread authentication responses |
+| 9623188 | fix(test): synchronize bounded browser journeys (#5) |
+| 47f1ec5 | chore(auth): incorporate verified browser regression correction from main |
 
 ## Evidencia comprobada de fase 2
 
@@ -55,3 +60,11 @@ Código 85cb872: [cuatro checks remotos aprobados](https://github.com/shejo8511/
 Localmente, el comando completo sobre a3de1df aprobó etapas backend/frontend, cobertura y builds, pero terminó **exit 1** con 13/15 E2E; no se registra como verde. El diff a3de1df→85cb872 contiene exclusivamente el helper E2E de sincronización HTTP; las mediciones locales de las etapas backend/frontend corresponden explícitamente a a3de1df. Repetición `./scripts/verify.sh stack` sobre 85cb872 **exit 0**, 15 E2E, persistencia/recreación y segundo arranque. `./scripts/verify.sh security` sobre 85cb872 **exit 0**, cero vulnerabilidades Python/npm y cero secretos en historia/árbol. Lint/formato/tipos frontend tras el cambio, sintaxis de todos los scripts shell y whitespace: exit 0. Resultados, SHA y namespaces separados en testing.md; hallazgos corregidos y límites en qa-report.md.
 
 No hay administración de usuarios/roles por API, licencias, consumo, alertas, SSE, gráficos, pagos, registro público ni recuperación de contraseña. El rate limit global comparte presupuesto entre usuarios; no es protección distribuida completa. No se auditaron todas las bibliotecas OS de las imágenes ni un despliegue de producción. **Detenerse antes de fase 3**: la aplicación completa permanece pendiente.
+
+## Evidencia completa anterior al HEAD documental
+
+**47f1ec5522dbcab667c882e706ed39320c84e662**: ./scripts/verify.sh local **exit 0**, reports/b2b-test-1790975315-52566, y [CI exacto](https://github.com/shejo8511/saas-subscription-eval/actions/runs/37065043897), Backend/Frontend/Stack/Security success. 43 unitarias + 45 integración PostgreSQL, 5 tooling, 37 Vitest y 24 E2E. Backend 425/452 líneas y 44/52 ramas; frontend 124/124 líneas, 133/134 statements, 38/38 funciones, 104/106 ramas. Lint, formato, tipos, builds, persistencia/recreación, segundo arranque y scans sin hallazgos aprobados. Informes originales inspeccionados. Los exit 1 previos permanecen en QA/testing, incluido el helper bloqueado de 116dd5f corregido en bec5aa2.
+
+PR #5 integrada en main 9623188 tras sus checks/local y CI de merge aprobados. feature/auth-tenancy conserva todo el historial. La PR #2 y el HEAD documental posterior se cierran únicamente tras verificar sus cuatro checks/reglas; el SHA de ese commit y merge, CI de main, smoke limpio final y ramas retenidas se reportan en PR/cierre después de existir. Ninguna aprobación externa inventada.
+
+Arranque: ./scripts/dev.sh, http://localhost:3000; consultar localmente `less .local/demo-credentials.json`. Probar Admin/User de Empresa Aurora y Empresa Pacífico, con perfiles separados para simultaneidad o logout entre cuentas. Seed no asigna licencias ni crea consumo. Smoke previo limpio 85cb872 exit 0 y sus límites constan en testing; se vuelve a comprobar el estado del merge desde worktree limpio. Sin despliegue cloud ni auditoría OS completa. **Detenerse antes de fase 3**; la aplicación completa permanece pendiente.

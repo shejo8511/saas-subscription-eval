@@ -100,3 +100,24 @@ Otra repetición completa de 85cb872, reports/b2b-test-1790970663-5274, terminó
 116dd5f30413363e6517df30961262d35e429fd6 separa los recorridos de las cuatro cuentas, espera /me en navegación/recarga y respeta el viewport en contextos simultáneos. El runtime de prueba aislado recibe DATABASE_TIMEOUT=10 (máximo validado), sin modificar el default dev/producción de 3. Ahora se recogen 24 E2E, conservando todas las comprobaciones. [CI 37062280908](https://github.com/shejo8511/saas-subscription-eval/actions/runs/37062280908): Backend/Frontend/Security success, artefactos comprobados con 43 unitarias, 45 integración, coberturas de la tabla y cero hallazgos; **Stack falló, 6/24**. La espera añadida de response.finished() bloqueaba /me 401; no se considera aprobada la revisión.
 
 La corrección exige status HTTP y JSON de identidad para respuestas 200, seguido de aserciones de UI, sin esperar un cuerpo que el cliente no consume en 401/logout. Los plazos visuales, negativos, cookie/replay, concurrencia, observación DOM y umbrales se conservan. Su verificación completa se registra cuando exista, sin atribuirle resultados del SHA anterior.
+
+## Verificación completa del código final de fase 2
+
+Código **47f1ec5522dbcab667c882e706ed39320c84e662**, incorpora main 9623188 y PR #5. Local `./scripts/verify.sh` **exit 0**, reports/b2b-test-1790975315-52566; el trap conservó el exit y limpió solo sus contenedores/red/volumen/fixtures. [CI exacto](https://github.com/shejo8511/saas-subscription-eval/actions/runs/37065043897): los cuatro jobs success, artefactos originales comprobados, mismos recuentos y denominadores. No se atribuye este resultado a las ejecuciones fallidas anteriores.
+
+| Comando/control real | Exit | Resultado |
+|---|---|---|
+| ./scripts/verify.sh (all) | 0 | Todas las etapas obligatorias, sin skips |
+| Ruff / formato / mypy app | 0 / 0 / 0 | 38 archivos con formato; 18 módulos tipados |
+| pytest combinado + umbrales | 0 | 43 unitarias + 45 integración PG; líneas y ramas independientes |
+| unittest de scripts | 0 | 5: umbrales y conservación de configuración |
+| ESLint / Prettier / TypeScript | 0 / 0 / 0 | Sin advertencias ni controles desactivados |
+| Vitest --coverage | 0 | 37 pruebas, cuatro umbrales independientes |
+| Next build / imágenes producción | 0 / 0 | Tipos y compilación reales |
+| Playwright por proxy | 0 | 24: cuatro cuentas, concurrentes, cambio secuencial, CSRF/replay y bootstrap, tres viewports |
+| Persistencia/recreación/segundo arranque | 0 | PostgreSQL conserva el dato sintético; migración idempotente |
+| pip-audit / npm audit / Gitleaks historia y árbol | 0 / 0 / 0 | Cero vulnerabilidades/secretos del proyecto |
+
+Backend **425/452 líneas = 94,03%**, **44/52 ramas = 84,62%**; cero líneas excluidas. Frontend **124/124 líneas = 100%**, **133/134 statements = 99,25%**, **38/38 funciones = 100%**, **104/106 ramas = 98,11%**; cero skips. El código runtime completo entra en el denominador. Los 24 E2E separan cada cuenta en un recorrido real; se conservan todos los asserts y no se imponen cantidades artificiales.
+
+PR #5: ./scripts/verify.sh stack exit 0 en aaf6d84, seis regresiones y persistencia/arranque repetido, reports/b2b-test-1790974205-40531. [CI HEAD](https://github.com/shejo8511/saas-subscription-eval/actions/runs/37063118128) y [CI merge 9623188](https://github.com/shejo8511/saas-subscription-eval/actions/runs/37064994046), cuatro checks success. Auth incorpora la corrección en 47f1ec5. El HEAD documental posterior y merge auth se validan por separado y se informan después en PR/cierre.
