@@ -1,5 +1,11 @@
 import { readFileSync } from "node:fs";
-import { test, expect, type Page } from "@playwright/test";
+import {
+  test,
+  expect,
+  type Frame,
+  type Page,
+  type Request,
+} from "@playwright/test";
 
 type Account = {
   email: string;
@@ -15,20 +21,38 @@ test.setTimeout(90_000);
 test.use({ trace: "off", screenshot: "off", actionTimeout: 20_000 });
 
 async function visit(page: Page, expectedStatus: number, reload = false) {
-  const identityResponse = page.waitForResponse(
-    (response) =>
-      response.url().endsWith("/auth/me") &&
-      response.request().method() === "GET",
+  let committed = false;
+  const requests = new Set<Request>();
+  const navigated = (frame: Frame) => {
+    if (frame === page.mainFrame()) committed = true;
+  };
+  const started = (request: Request) => {
+    if (
+      committed &&
+      request.url().endsWith("/auth/me") &&
+      request.method() === "GET"
+    )
+      requests.add(request);
+  };
+  page.on("framenavigated", navigated);
+  page.on("request", started);
+  const identityResponse = page.waitForResponse((response) =>
+    requests.has(response.request()),
   );
-  const [response] = await Promise.all([
-    identityResponse,
-    reload
-      ? page.reload({ waitUntil: "domcontentloaded" })
-      : page.goto("/", { waitUntil: "domcontentloaded" }),
-  ]);
-  expect(response.status()).toBe(expectedStatus);
-  if (expectedStatus === 200)
-    expect((await response.json()).company.id).toBeTruthy();
+  try {
+    const [response] = await Promise.all([
+      identityResponse,
+      reload
+        ? page.reload({ waitUntil: "domcontentloaded" })
+        : page.goto("/", { waitUntil: "domcontentloaded" }),
+    ]);
+    expect(response.status()).toBe(expectedStatus);
+    if (expectedStatus === 200)
+      expect((await response.json()).company.id).toBeTruthy();
+  } finally {
+    page.off("framenavigated", navigated);
+    page.off("request", started);
+  }
 }
 
 async function enter(page: Page, account: Account) {

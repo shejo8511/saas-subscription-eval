@@ -39,4 +39,6 @@ Local: `./scripts/verify.sh` **exit 0** en ese código, reports/b2b-test-1790975
 
 Al escribir este documento, los checks del commit documental posterior y el posible merge de #2 todavía requieren comprobación. Sus SHA, resultados y ramas retenidas se informan en PR/cierre después de existir; no se inventan resultados futuros ni revisiones externas.
 
+El CI de 0b5b3d3 aprobó tres checks pero Stack falló 23/24 por capturar un /me del documento anterior durante reload. La corrección del helper delimita la nueva navegación y conserva lectura JSON/controles; se verifica con stack local y los cuatro checks del nuevo HEAD antes de integrar. El runtime coincide con 47f1ec5, cuyo all local y cobertura siguen identificados con ese SHA. Evidencia posterior al último commit se publica en PR/cierre.
+
 **Detenerse antes de fase 3.** Fases 3–7 pendientes y sin autorización; sin CRUD administrativo, cambios de rol/estado por API, licencias, consumo, alertas, SSE ni dashboard completo. Se conserva el registro histórico de fase 1. La aplicación completa permanece pendiente.
